@@ -18,7 +18,7 @@ const Login = () => {
         email: '',
         password: '',
     });
-    const [isLoading, setIsLoading] = useState(false);
+    const [, setIsLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
