@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Pencil, Trash2, Tag } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button as AntButton } from "antd";
 import { Input } from '../../components/ui';
 
