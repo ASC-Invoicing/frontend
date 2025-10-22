@@ -1,0 +1,206 @@
+import React, { useState } from "react";
+import { Search, Plus, Upload, Pencil } from "lucide-react";
+import { Button, Input } from "../../components/ui";
+import { DataTable } from "../../components/ui/table";
+
+
+type InvoiceStatus = "draft" | "submitted" | "validated" | "paid";
+type FirsStatus = "pending" | "rejected" | "validated";
+
+interface Invoice {
+    id: string;
+    customerName: string;
+    customerTIN: string;
+    date: string;
+    dueDate: string;
+    amount: number;
+    status: InvoiceStatus;
+    firsStatus: FirsStatus;
+}
+
+
+const mockInvoices: Invoice[] = [
+    { id: "INV-2024-002", customerName: "MTN Nigeria", customerTIN: "TIN: 87654321-0001", date: "Dec 5, 2024", dueDate: "Jan 5, 2025", amount: 537500, status: "submitted", firsStatus: "pending" },
+    { id: "INV-2024-003", customerName: "Access Bank PLC", customerTIN: "TIN: 45678912-0001", date: "Nov 15, 2024", dueDate: "Dec 15, 2024", amount: 322500, status: "submitted", firsStatus: "rejected" },
+    { id: "INV-2024-004", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Oct 25, 2024", dueDate: "Nov 25, 2024", amount: 806250, status: "submitted", firsStatus: "validated" },
+    { id: "INV-2024-001", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
+];
+
+const currencyFormatter = new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+});
+
+
+const StatusTag: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
+    const colors: Record<InvoiceStatus, string> = {
+        draft: "bg-gray-100 text-gray-600",
+        submitted: "bg-blue-100 text-blue-700",
+        validated: "bg-green-100 text-green-700",
+        paid: "bg-indigo-100 text-indigo-700",
+    };
+
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
+            {status}
+        </span>
+    );
+};
+
+const FirsStatusTag: React.FC<{ status: FirsStatus }> = ({ status }) => {
+    const colors: Record<FirsStatus, string> = {
+        pending: "bg-yellow-100 text-yellow-700",
+        rejected: "bg-red-100 text-red-700",
+        validated: "bg-green-100 text-green-700",
+    };
+
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
+            {status}
+        </span>
+    );
+};
+
+
+const FilterTabs: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void }> = ({
+    activeTab,
+    setActiveTab,
+}) => {
+    const tabs = ["All", "Draft", "Submitted", "Validated", "Paid"];
+
+    return (
+        <div className="flex flex-wrap gap-4">
+            {tabs.map((tab) => (
+                <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-2 text-sm font-medium border-b-2 cursor-pointer transition-colors ${activeTab === tab
+                            ? "text-[#2563EB] border-[#2563EB]"
+                            : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                >
+                    {tab}
+                </button>
+            ))}
+        </div>
+    );
+};
+
+
+const InvoicesPage: React.FC = () => {
+    const [activeTab, setActiveTab] = useState("All");
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const filteredInvoices = mockInvoices.filter((invoice) => {
+        const matchesSearch =
+            invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+        if (activeTab === "All") return matchesSearch;
+        return matchesSearch && invoice.status === activeTab.toLowerCase();
+    });
+
+
+    const columns = [
+        {
+            title: "Invoice #",
+            dataIndex: "id",
+            key: "id",
+            render: (text: string) => <span className="font-semibold text-gray-900">{text}</span>,
+        },
+        {
+            title: "Customer",
+            dataIndex: "customerName",
+            key: "customer",
+            render: (_: any, record: Invoice) => (
+                <div>
+                    <div className="text-sm font-medium text-gray-900">{record.customerName}</div>
+                    <div className="text-xs text-gray-500">{record.customerTIN}</div>
+                </div>
+            ),
+        },
+        { title: "Date", dataIndex: "date", key: "date" },
+        { title: "Due Date", dataIndex: "dueDate", key: "dueDate" },
+        {
+            title: "Amount",
+            dataIndex: "amount",
+            key: "amount",
+            render: (amount: number) => (
+                <span className="font-semibold text-gray-900">{currencyFormatter.format(amount)}</span>
+            ),
+        },
+        { title: "Status", key: "status", render: (_: any, r: Invoice) => <StatusTag status={r.status} /> },
+        { title: "FIRS Status", key: "firsStatus", render: (_: any, r: Invoice) => <FirsStatusTag status={r.firsStatus} /> },
+        {
+            title: "Actions",
+            key: "actions",
+            render: () => (
+                <button className="text-[#2563EB] hover:text-[#1d4ed8] p-1 rounded-md transition-colors">
+                    <Pencil className="w-4 h-4" />
+                </button>
+            ),
+        },
+    ];
+
+    return (
+        <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
+            {/* Header */}
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
+                    <p className="text-sm text-gray-500">Manage and track all your invoices</p>
+                </div>
+
+                <div className="flex space-x-3 mt-4 sm:mt-0">
+                    <Button variant="outline" icon={<Upload className="w-4 h-4" />}>
+                        Bulk Upload
+                    </Button>
+                    <Button icon={<Plus className="w-4 h-4" />} variant="solid">
+                        Create Invoice
+                    </Button>
+                </div>
+            </header>
+
+            {/* Search and Filter Row */}
+            <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-between gap-6">
+                    <div className="relative flex-grow max-w-lg">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input
+                            icon={<Search className="w-5 h-5" />}
+                            placeholder="Search invoices by number or customer..."
+                            type="text"
+                            name="search"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        >
+                        </Input>
+                    </div>
+
+                    {/* Filter Tabs */}
+                    <FilterTabs activeTab={activeTab} setActiveTab={setActiveTab}  />
+                </div>
+            </div>
+
+            {/* Table */}
+            <main className="p-4 sm:p-6 flex-grow">
+                <DataTable
+                    columns={columns}
+                    dataSource={filteredInvoices}
+                    loading={false}
+                    total={filteredInvoices.length}
+                    currentPage={1}
+                    pageSize={10}
+                    title="Invoice List"
+                    bordered
+                />
+            </main>
+        </div>
+    );
+};
+
+export default InvoicesPage;
