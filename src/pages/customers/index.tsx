@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Search, Plus, Pencil, Trash2, Mail, Phone } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Mail, Phone, User } from "lucide-react";
 import { Button, Input } from "../../components/ui";
 import { DataTable } from "../../components/ui/table";
+import { Header } from "../../components/header";
 
 interface Customer {
     id: string;
@@ -102,10 +103,10 @@ const CustomersPage: React.FC = () => {
             key: "actions",
             render: () => (
                 <div className="flex space-x-2">
-                    <button className="text-gray-500 hover:text-[#2563EB] p-1 rounded-md transition-colors">
+                    <button className="text-gray-500 cursor-pointer hover:text-[#2563EB] p-1 rounded-md transition-colors">
                         <Pencil className="w-4 h-4" />
                     </button>
-                    <button className="text-gray-500 hover:text-red-500 p-1 rounded-md transition-colors">
+                    <button className="text-gray-500 cursor-pointer hover:text-red-500 p-1 rounded-md transition-colors">
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
@@ -116,21 +117,20 @@ const CustomersPage: React.FC = () => {
     return (
         <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-                    <p className="text-sm text-gray-500">Manage your customer database</p>
-                </div>
 
-                <div className="mt-4 sm:mt-0">
-                    <Button icon={<Plus className="w-4 h-4" />} variant="solid">
-                        Add Customer
+            <Header
+                icon={<User className="w-6 h-6 text-[#00529A]" />}
+                title="Customers"
+                description="Manage your customer database"
+                actions={
+                    <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+                       Add Customer
                     </Button>
-                </div>
-            </header>
+                }
+            />
 
             {/* Search */}
-            <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+            <div className=" py-3">
                 <div className="relative max-w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 
@@ -140,14 +140,14 @@ const CustomersPage: React.FC = () => {
                         type="text"
                         name="search"
                         value={searchTerm}
-                       onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setSearchTerm(e.target.value)}
+                        onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setSearchTerm(e.target.value)}
                     ></Input>
-           
+
                 </div>
             </div>
 
             {/* Table */}
-            <main className="p-4 sm:p-6 flex-grow">
+            <main className="py-4 flex-grow">
                 <DataTable
                     title="Customer List"
                     columns={columns}

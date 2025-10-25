@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { Search, Plus, Upload, Pencil } from "lucide-react";
+import { Search, Plus, Upload, Pencil, FileText } from "lucide-react";
 import { Button, Input } from "../../components/ui";
 import { DataTable } from "../../components/ui/table";
+import { Header } from "../../components/header";
+import { usePagination } from "../../hooks/usePagination";
+import type { TablePaginationConfig } from "antd";
 
 
 type InvoiceStatus = "draft" | "submitted" | "validated" | "paid";
@@ -23,7 +26,19 @@ const mockInvoices: Invoice[] = [
     { id: "INV-2024-002", customerName: "MTN Nigeria", customerTIN: "TIN: 87654321-0001", date: "Dec 5, 2024", dueDate: "Jan 5, 2025", amount: 537500, status: "submitted", firsStatus: "pending" },
     { id: "INV-2024-003", customerName: "Access Bank PLC", customerTIN: "TIN: 45678912-0001", date: "Nov 15, 2024", dueDate: "Dec 15, 2024", amount: 322500, status: "submitted", firsStatus: "rejected" },
     { id: "INV-2024-004", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Oct 25, 2024", dueDate: "Nov 25, 2024", amount: 806250, status: "submitted", firsStatus: "validated" },
-    { id: "INV-2024-001", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
+    { id: "INV-2024-005", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
+    { id: "INV-2024-006", customerName: "MTN Nigeria", customerTIN: "TIN: 87654321-0001", date: "Dec 5, 2024", dueDate: "Jan 5, 2025", amount: 537500, status: "submitted", firsStatus: "pending" },
+    { id: "INV-2024-007", customerName: "Access Bank PLC", customerTIN: "TIN: 45678912-0001", date: "Nov 15, 2024", dueDate: "Dec 15, 2024", amount: 322500, status: "submitted", firsStatus: "rejected" },
+    { id: "INV-2024-008", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Oct 25, 2024", dueDate: "Nov 25, 2024", amount: 806250, status: "submitted", firsStatus: "validated" },
+    { id: "INV-2024-009", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
+    { id: "INV-2024-0010", customerName: "MTN Nigeria", customerTIN: "TIN: 87654321-0001", date: "Dec 5, 2024", dueDate: "Jan 5, 2025", amount: 537500, status: "submitted", firsStatus: "pending" },
+    { id: "INV-2024-0011", customerName: "Access Bank PLC", customerTIN: "TIN: 45678912-0001", date: "Nov 15, 2024", dueDate: "Dec 15, 2024", amount: 322500, status: "submitted", firsStatus: "rejected" },
+    { id: "INV-2024-0012", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Oct 25, 2024", dueDate: "Nov 25, 2024", amount: 806250, status: "submitted", firsStatus: "validated" },
+    { id: "INV-2024-0013", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
+    { id: "INV-2024-0014", customerName: "MTN Nigeria", customerTIN: "TIN: 87654321-0001", date: "Dec 5, 2024", dueDate: "Jan 5, 2025", amount: 537500, status: "submitted", firsStatus: "pending" },
+    { id: "INV-2024-0015", customerName: "Access Bank PLC", customerTIN: "TIN: 45678912-0001", date: "Nov 15, 2024", dueDate: "Dec 15, 2024", amount: 322500, status: "submitted", firsStatus: "rejected" },
+    { id: "INV-2024-0016", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Oct 25, 2024", dueDate: "Nov 25, 2024", amount: 806250, status: "submitted", firsStatus: "validated" },
+    { id: "INV-2024-0017", customerName: "Dangote Group", customerTIN: "TIN: 12345678-0001", date: "Dec 1, 2024", dueDate: "Dec 31, 2024", amount: 537500, status: "draft", firsStatus: "pending" },
 ];
 
 const currencyFormatter = new Intl.NumberFormat("en-NG", {
@@ -42,7 +57,7 @@ const StatusTag: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     };
 
     return (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
             {status}
         </span>
     );
@@ -56,7 +71,7 @@ const FirsStatusTag: React.FC<{ status: FirsStatus }> = ({ status }) => {
     };
 
     return (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${colors[status]}`}>
             {status}
         </span>
     );
@@ -70,14 +85,14 @@ const FilterTabs: React.FC<{ activeTab: string; setActiveTab: (tab: string) => v
     const tabs = ["All", "Draft", "Submitted", "Validated", "Paid"];
 
     return (
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap bg-[#F4F4F5] p-1 gap-4">
             {tabs.map((tab) => (
                 <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`pb-2 text-sm font-medium border-b-2 cursor-pointer transition-colors ${activeTab === tab
-                            ? "text-[#2563EB] border-[#2563EB]"
-                            : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
+                    className={`p-2 text-sm font-medium cursor-pointer transition-colors ${activeTab === tab
+                        ? "text-[#00000] !bg-[#ffff]"
+                        : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
                         }`}
                 >
                     {tab}
@@ -91,10 +106,21 @@ const FilterTabs: React.FC<{ activeTab: string; setActiveTab: (tab: string) => v
 const InvoicesPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState("All");
     const [searchTerm, setSearchTerm] = useState("");
+    const { page, pageSize, onPageChange } = usePagination(10);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
+
+    const handleTableChange = (
+        pagination: TablePaginationConfig,
+    ) => {
+        onPageChange(
+            pagination.current ?? 1,
+            pagination.pageSize ?? pageSize
+        );
+    };
+
 
     const filteredInvoices = mockInvoices.filter((invoice) => {
         const matchesSearch =
@@ -103,6 +129,10 @@ const InvoicesPage: React.FC = () => {
         if (activeTab === "All") return matchesSearch;
         return matchesSearch && invoice.status === activeTab.toLowerCase();
     });
+
+
+    const startIndex = (page - 1) * pageSize;
+    const paginatedInvoices = filteredInvoices.slice(startIndex, startIndex + pageSize);
 
 
     const columns = [
@@ -139,7 +169,7 @@ const InvoicesPage: React.FC = () => {
             title: "Actions",
             key: "actions",
             render: () => (
-                <button className="text-[#2563EB] hover:text-[#1d4ed8] p-1 rounded-md transition-colors">
+                <button className="text-[#2563EB] cursor-pointer hover:text-[#1d4ed8] p-1 rounded-md transition-colors">
                     <Pencil className="w-4 h-4" />
                 </button>
             ),
@@ -149,26 +179,34 @@ const InvoicesPage: React.FC = () => {
     return (
         <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-                    <p className="text-sm text-gray-500">Manage and track all your invoices</p>
-                </div>
-
-                <div className="flex space-x-3 mt-4 sm:mt-0">
-                    <Button variant="outline" icon={<Upload className="w-4 h-4" />}>
+            <Header
+                icon={<FileText className="w-6 h-6 text-[#00529A]" />}
+                title="Invoices"
+                description="Manage and track all your invoices"
+                actions={[
+                    <Button
+                        key="upload"
+                        icon={<Upload className="w-4 h-4" />}
+                        className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200"
+                    >
                         Bulk Upload
-                    </Button>
-                    <Button icon={<Plus className="w-4 h-4" />} variant="solid">
+                    </Button>,
+                    <Button
+                        key="create"
+                        variant="solid"
+                        icon={<Plus className="w-4 h-4" />}
+                        className="shadow-md"
+                    >
                         Create Invoice
-                    </Button>
-                </div>
-            </header>
+                    </Button>,
+                ]}
+            />
+
 
             {/* Search and Filter Row */}
-            <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+            <div className="py-3 ">
                 <div className="flex flex-col sm:flex-row justify-between gap-6">
-                    <div className="relative flex-grow max-w-lg">
+                    <div className="relative flex-grow max-w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                             icon={<Search className="w-5 h-5" />}
@@ -182,19 +220,20 @@ const InvoicesPage: React.FC = () => {
                     </div>
 
                     {/* Filter Tabs */}
-                    <FilterTabs activeTab={activeTab} setActiveTab={setActiveTab}  />
+                    <FilterTabs activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
             </div>
 
             {/* Table */}
-            <main className="p-4 sm:p-6 flex-grow">
+            <main className="py-4 flex-grow">
                 <DataTable
                     columns={columns}
-                    dataSource={filteredInvoices}
+                    dataSource={paginatedInvoices}
                     loading={false}
                     total={filteredInvoices.length}
-                    currentPage={1}
-                    pageSize={10}
+                    currentPage={page}
+                    pageSize={pageSize}
+                    onPageChange={onPageChange}
                     title="Invoice List"
                     bordered
                 />

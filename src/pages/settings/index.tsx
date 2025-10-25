@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button, Input, Select } from "../../components/ui";
-import { FileText, Save } from "lucide-react";
+import { FileText, Save, Settings } from "lucide-react";
 import TextArea from "antd/es/input/TextArea";
 import { Form } from "antd";
+import { Header } from "../../components/header";
+import { CustomTextArea } from "../../components/ui/textarea";
 
 
 const MOCK_COMPANY_SETTINGS = {
@@ -39,12 +41,12 @@ const SettingsPage = () => {
 
     return (
         <>
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-                <div className="mb-4 sm:mb-0">
-                    <h1 className="text-3xl font-bold text-gray-900">Company Settings</h1>
-                    <p className="text-sm text-gray-500">Manage your company profile and FIRS integration</p>
-                </div>
-            </header>
+            <Header
+                icon={<Settings className="w-6 h-6 text-[#00529A]" />}
+                title="Company Settings"
+                description="Manage your company profile and FIRS integration"
+            />
+
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Company Information Card */}
@@ -92,12 +94,14 @@ const SettingsPage = () => {
                     </div>
 
                     <div className="mt-6">
-                        <Form.Item label="Address" name="address">
-                            <TextArea
-                                value={settings.address}
-                                onChange={handleChange}
-                            />
-                        </Form.Item>
+
+                        <CustomTextArea
+                            value={settings.address}
+                            onChange={handleChange}
+                            label="Address"
+                        >
+
+                        </CustomTextArea>
                     </div>
                 </div>
 
