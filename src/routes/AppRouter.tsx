@@ -8,10 +8,14 @@ import InvoicesPage from "../pages/invoices/invoice";
 import CustomersPage from "../pages/customers";
 import ProductPage from "../pages/products";
 import SettingsPage from "../pages/settings";
+import ReportsPage from "../pages/reports";
+import { ScrollToTop } from "../components/scroll-to-top";
 
 export const AppRouter = () => {
+
     return (
         <BrowserRouter>
+   <ScrollToTop />
             <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Navigate to="/login" />} />
@@ -32,6 +36,7 @@ export const AppRouter = () => {
                     <Route path="customers" element={<CustomersPage />} />
                     <Route path="products" element={<ProductPage />} />
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route path="reports" element={<ReportsPage />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
-import { Button as AntButton } from "antd";
-import { Input } from '../../components/ui';
+import { Search, Plus, Pencil, Trash2, ShoppingBag } from 'lucide-react';
+import { Button as AntButton, Empty } from "antd";
+import { Button, Input } from '../../components/ui';
+import { Header } from '../../components/header';
 
 type ProductType = 'services' | 'digital services' | 'physical goods';
 
@@ -62,7 +63,7 @@ const TypeTag: React.FC<{ type: ProductType }> = ({ type }) => {
     if (type === 'physical goods') colorClass = 'bg-orange-100 text-orange-700';
 
     return (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${colorClass}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${colorClass}`}>
             {type.replace(' ', ' ')}
         </span>
     );
@@ -77,11 +78,11 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
                 <h2 className="text-xl font-bold text-gray-900 leading-tight pr-4">
                     {product.name}
                 </h2>
-                <div className="flex space-x-2 flex-shrink-0">
-                    <button className="text-gray-500 hover:text-[#2563EB] p-1 rounded-md transition-colors">
+                <div className="flex space-x-2  flex-shrink-0">
+                    <button className="text-gray-500 cursor-pointer hover:text-[#2563EB] p-1 rounded-md transition-colors">
                         <Pencil className="w-4 h-4" />
                     </button>
-                    <button className="text-gray-500 hover:text-red-500 p-1 rounded-md transition-colors">
+                    <button className="text-gray-500 cursor-pointer hover:text-red-500 p-1 rounded-md transition-colors">
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
@@ -130,23 +131,22 @@ const ProductPage = () => {
         <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
 
             {/* Header */}
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-                <div className="mb-4 sm:mb-0">
-                    <h1 className="text-3xl font-bold text-gray-900">Products & Services</h1>
-                    <p className="text-sm text-gray-500">Manage your product catalog</p>
-                </div>
-
-                <AntButton type="primary" className="flex items-center bg-[#2563EB] text-white h-10 px-4 font-medium rounded-lg hover:bg-[#1d4ed8] border-0 shadow-lg shadow-[#2563EB]/40">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Product
-                </AntButton>
-            </header>
+            <Header
+                icon={<ShoppingBag className="w-6 h-6 text-[#00529A]" />}
+                title="Products & Services"
+                description="Manage your product catalog"
+                actions={
+                    <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+                        Add Product
+                    </Button>
+                }
+            />
 
             {/* Search Input */}
-            <div className="p-4 sm:p-6 bg-white border-b border-gray-200">
+            <div className="py-3">
                 <div className="relative max-w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        
+
                     <Input
                         icon={<Search className="w-5 h-5" />}
                         placeholder="Search products..."
@@ -159,7 +159,7 @@ const ProductPage = () => {
             </div>
 
             {/* Product Cards */}
-            <main className="p-4 sm:p-6 flex-grow">
+            <main className="py-4 flex-grow">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
                         <ProductCard key={product.id} product={product} />
@@ -167,9 +167,9 @@ const ProductPage = () => {
                 </div>
 
                 {filteredProducts.length === 0 && (
-                    <div className="p-10 text-center text-gray-500 bg-white rounded-xl shadow-md mt-6">
-                        No products or services found matching your criteria.
-                    </div>
+                <div className="py-12 flex flex-col items-center justify-center text-gray-500 rounded-xl mt-6">
+                <Empty description=" No products or services found matching your criteria." />
+              </div>
                 )}
             </main>
         </div>
