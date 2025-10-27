@@ -3,6 +3,7 @@ import { Search, Plus, Pencil, Trash2, ShoppingBag } from 'lucide-react';
 import { Button as AntButton, Empty } from "antd";
 import { Button, Input } from '../../components/ui';
 import { Header } from '../../components/header';
+import { Link } from 'react-router-dom';
 
 type ProductType = 'services' | 'digital services' | 'physical goods';
 
@@ -136,9 +137,11 @@ const ProductPage = () => {
                 title="Products & Services"
                 description="Manage your product catalog"
                 actions={
-                    <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
-                        Add Product
-                    </Button>
+                    <Link to={'/products/create-product'}>
+                        <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+                            Add Product
+                        </Button>
+                    </Link>
                 }
             />
 
@@ -167,9 +170,9 @@ const ProductPage = () => {
                 </div>
 
                 {filteredProducts.length === 0 && (
-                <div className="py-12 flex flex-col items-center justify-center text-gray-500 rounded-xl mt-6">
-                <Empty description=" No products or services found matching your criteria." />
-              </div>
+                    <div className="py-12 flex flex-col items-center justify-center text-gray-500 rounded-xl mt-6">
+                        <Empty description=" No products or services found matching your criteria." />
+                    </div>
                 )}
             </main>
         </div>

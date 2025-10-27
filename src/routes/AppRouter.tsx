@@ -10,18 +10,24 @@ import ProductPage from "../pages/products";
 import SettingsPage from "../pages/settings";
 import ReportsPage from "../pages/reports";
 import { ScrollToTop } from "../components/scroll-to-top";
+import CreateOrganization from "../pages/new-organization";
+import CreateInvoice from "../pages/invoices/new-invoice";
+import CreateCustomer from "../pages/customers/new-customer";
+import CreateProduct from "../pages/products/new-product";
 
 export const AppRouter = () => {
 
     return (
         <BrowserRouter>
-   <ScrollToTop />
+            <ScrollToTop />
             <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Navigate to="/login" />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
 
+
+                <Route path="/onboarding" element={<CreateOrganization />} />
                 {/* Protected dashboard routes */}
                 <Route
                     path="/"
@@ -37,6 +43,9 @@ export const AppRouter = () => {
                     <Route path="products" element={<ProductPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
+                    <Route path="invoices/create-invoice" element={<CreateInvoice />} />
+                    <Route path="customers/create-customer" element={<CreateCustomer />} />
+                    <Route path="products/create-product" element={<CreateProduct />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

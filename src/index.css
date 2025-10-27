@@ -14,3 +14,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.ant-table-thead > tr > th {
+  padding: 10px 12px !important;
+  text-align: left !important;
+  background-color: #f9fafb !important;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.ant-table-tbody > tr > td {
+  padding: 8px 12px !important;
+  vertical-align: middle !important;
+}
+
+
+/* Ensure consistent border radius and spacing */
+.ant-table-container {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
