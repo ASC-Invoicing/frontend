@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { Button } from "../../components/ui";
 import { Header } from "../../components/header";
+import { Link } from "react-router-dom";
 
 // --- MOCK DATA (same as ReportsPage) ---
 const MOCK_INVOICES = [
@@ -53,29 +54,27 @@ const StatusCard: React.FC<StatusCardData> = ({
   <div className="relative bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
     {/* Decorative half circle in background */}
     <div
-      className={`absolute -top-6 -right-10 w-30 h-28 rounded-full opacity-30 ${
-        color.includes("blue")
+      className={`absolute -top-6 -right-10 w-30 h-28 rounded-full opacity-30 ${color.includes("blue")
           ? "bg-blue-200"
           : color.includes("green")
-          ? "bg-green-200"
-          : color.includes("yellow")
-          ? "bg-yellow-200"
-          : "bg-red-200"
-      }`}
+            ? "bg-green-200"
+            : color.includes("yellow")
+              ? "bg-yellow-200"
+              : "bg-red-200"
+        }`}
     />
 
     <div className="relative z-10 flex justify-between items-start mb-4">
       <h3 className="text-sm font-semibold text-gray-600">{title}</h3>
       <div
-        className={`p-3 rounded-xl shadow-md text-white ${
-          color.includes("blue")
+        className={`p-3 rounded-xl shadow-md text-white ${color.includes("blue")
             ? "bg-[#2A6BED]"
             : color.includes("green")
-            ? "bg-[#1CB454]"
-            : color.includes("yellow")
-            ? "bg-[#D89B06]"
-            : "bg-[#E63737]"
-        }`}
+              ? "bg-[#1CB454]"
+              : color.includes("yellow")
+                ? "bg-[#D89B06]"
+                : "bg-[#E63737]"
+          }`}
       >
         <Icon className="w-5 h-5" />
       </div>
@@ -85,7 +84,7 @@ const StatusCard: React.FC<StatusCardData> = ({
       <p className="text-4xl font-extrabold text-gray-900">{value}</p>
       {subText && (
         <p className="text-xs text-gray-500 mt-1 flex items-center">
-          <span className="text-green-500 mr-1"><TrendingUp size={15}/></span>
+          <span className="text-green-500 mr-1"><TrendingUp size={15} /></span>
           {subText}
         </p>
       )}
@@ -179,9 +178,11 @@ const DashboardPage = () => {
         title="FIRS Compliance Dashboard"
         description="Track your invoice submissions and validation status"
         actions={
-          <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
-            Submit New Invoice
-          </Button>
+          <Link to={'/invoices/create-invoice'}>
+            <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+              Submit New Invoice
+            </Button>
+          </Link>
         }
       />
 
@@ -227,7 +228,7 @@ const DashboardPage = () => {
 
         {/* Bar Chart */}
         <div className="lg:col-span-1 bg-white rounded-xl shadow-sm hover:shadow-md transition">
-            <h2 className="text-lg font-bold py-5 pl-5 bg-[#ecfdf5] text-gray-800 mb-4">
+          <h2 className="text-lg font-bold py-5 pl-5 bg-[#ecfdf5] text-gray-800 mb-4">
             Submission Trends (Q4 2024)
           </h2>
           <div className="h-72">

@@ -3,6 +3,7 @@ import { Search, Plus, Pencil, Trash2, Mail, Phone, User } from "lucide-react";
 import { Button, Input } from "../../components/ui";
 import { DataTable } from "../../components/ui/table";
 import { Header } from "../../components/header";
+import { Link } from "react-router-dom";
 
 interface Customer {
     id: string;
@@ -123,9 +124,11 @@ const CustomersPage: React.FC = () => {
                 title="Customers"
                 description="Manage your customer database"
                 actions={
-                    <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
-                       Add Customer
-                    </Button>
+                    <Link to={'/customers/create-customer'}>
+                        <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+                            Add Customer
+                        </Button>
+                    </Link>
                 }
             />
 

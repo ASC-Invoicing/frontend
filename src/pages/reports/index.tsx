@@ -114,7 +114,7 @@ const ReportsPage: React.FC = () => {
       : '0.0';
 
   return (
-    <div className="flex flex-col flex-grow bg-gray-50 font-sans p-6">
+    <div className="flex flex-col flex-grow bg-gray-50 font-sans">
       {/* Header */}
       <Header
         icon={<BarChart3 className="w-6 h-6 text-[#00529A]" />}

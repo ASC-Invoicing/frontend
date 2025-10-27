@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 // NOTE: Assuming react-router-dom is available for NavLink
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
@@ -97,17 +97,19 @@ export const Sidebar = () => {
 
             </p>
 
-            <Button
+            <Link to="/onboarding">
+              <Button
 
-              className="w-full bg-[#B45309] hover:bg-orange-900 text-sm text-orange-700 h-9"
+                className="w-full bg-[#B45309] hover:bg-orange-900 text-sm text-orange-700 h-9"
 
-              icon={<Plus className="w-4 h-4" />}
+                icon={<Plus className="w-4 h-4" />}
 
-            >
+              >
 
-              Create Organization
+                Create Organization
 
-            </Button>
+              </Button>
+            </Link>
 
           </div>
 

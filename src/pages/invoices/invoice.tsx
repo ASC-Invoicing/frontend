@@ -5,6 +5,7 @@ import { DataTable } from "../../components/ui/table";
 import { Header } from "../../components/header";
 import { usePagination } from "../../hooks/usePagination";
 import type { TablePaginationConfig } from "antd";
+import { Link } from "react-router-dom";
 
 
 type InvoiceStatus = "draft" | "submitted" | "validated" | "paid";
@@ -191,14 +192,17 @@ const InvoicesPage: React.FC = () => {
                     >
                         Bulk Upload
                     </Button>,
-                    <Button
-                        key="create"
-                        variant="solid"
-                        icon={<Plus className="w-4 h-4" />}
-                        className="shadow-md"
-                    >
-                        Create Invoice
-                    </Button>,
+
+                    <Link to={'create-invoice'}>
+                        <Button
+                            key="create"
+                            variant="solid"
+                            icon={<Plus className="w-4 h-4" />}
+                            className="shadow-md"
+                        >
+                            Create Invoice
+                        </Button>
+                    </Link>
                 ]}
             />
 
