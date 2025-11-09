@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input, Button } from "../../components/ui";
 import { Eye, EyeOff } from "lucide-react";
-import { useToast } from "../../components/ui/toast/toastProvider";
+import { useToast } from "../../components/ui/toast/ToastProvider";
 import { useLoginMutation } from "../../features/auth/authSlice";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft, Save, Search } from "lucide-react";
 import { Button, Input } from "../../components/ui";
 import { Link, useNavigate } from "react-router-dom";
-import { useToast } from "../../components/ui/toast/toastProvider";
+import { useToast } from "../../components/ui/toast/ToastProvider";
 import {
     useVerifyTINMutation,
     useCreateOrganizationMutation,
@@ -50,7 +50,7 @@ const CreateOrganization = () => {
 
                 setVerifiedData(null);
                 setTin("");
-                
+
                 dispatch(setActiveOrg({ slug: res.data.Slug, name: res.data.CompanyName }));
                 showToast("Organization created successfully!", "success");
                 setVerifiedData(null);
