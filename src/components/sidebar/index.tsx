@@ -21,7 +21,7 @@ import { useListOrganizationsQuery } from "../../features/organizations/organiza
 import { setActiveOrg } from "../../store/orgContextSlice";
 import type { RootState } from "../../store";
 import { Empty } from "antd";
-import { useToast } from "../ui/toast/toastProvider";
+import { useToast } from "../ui/toast/ToastProvider";
 
 const PRIMARY_TEAL = "#00786F";
 

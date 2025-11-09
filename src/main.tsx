@@ -5,7 +5,7 @@ import "./index.css";
 import { Provider } from "react-redux";
 import { store } from "./store";
 import { ConfigProvider, } from "antd";
-import { ToastProvider } from "./components/ui/toast/toastProvider";
+import { ToastProvider } from "./components/ui/toast/ToastProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

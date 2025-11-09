@@ -6,7 +6,7 @@ import { Button } from "../../components/ui";
 import { Input } from "../../components/ui";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useSignupMutation } from "../../features/auth/authSlice";
-import { useToast } from "../../components/ui/toast/toastProvider";
+import { useToast } from "../../components/ui/toast/ToastProvider";
 
 export default function SignUpPage() {
     const { showToast } = useToast()
