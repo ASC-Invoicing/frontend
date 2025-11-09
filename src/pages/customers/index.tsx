@@ -116,15 +116,15 @@ const CustomersPage: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
+        <div className="flex flex-col font-sans min-h-screen">
             {/* Header */}
 
             <Header
-                icon={<User className="w-6 h-6 text-[#00529A]" />}
+                icon={<User className="w-6 h-6 text-[#00786F]" />}
                 title="Customers"
                 description="Manage your customer database"
                 actions={
-                    <Link to={'/customers/create-customer'}>
+                   <Link to="create-customer">
                         <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
                             Add Customer
                         </Button>

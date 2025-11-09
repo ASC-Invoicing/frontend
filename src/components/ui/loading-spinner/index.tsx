@@ -1,7 +1,27 @@
+import React from "react";
 import { LoadingOutlined } from "@ant-design/icons";
 
-export const LoadingSpinner = () => (
-  <div className="flex items-center justify-center p-4">
-    <LoadingOutlined className="text-[#1d4ed8] text-2xl animate-spin" />
-  </div>
-);
+interface LoadingSpinnerProps {
+  size?: string | number; 
+  color?: string;          
+  className?: string;       
+}
+
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = "2xl",
+  color = "#00786F",
+  className = "",
+}) => {
+
+  const sizeClass =
+    typeof size === "string" ? `text-${size}` : `text-[${size}px]`;
+
+  return (
+    <div className={`flex items-center justify-center p-4 ${className}`}>
+      <LoadingOutlined
+        className={`${sizeClass} animate-spin`}
+        style={{ color }}
+      />
+    </div>
+  );
+};

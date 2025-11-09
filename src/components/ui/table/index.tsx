@@ -55,7 +55,7 @@ export const DataTable = <T extends object>({
             <Button
               icon={<ReloadOutlined />}
               onClick={onRefresh}
-              className="flex items-center gap-1 text-[#1d4ed8] hover:text-[#1e40af] border-none bg-transparent"
+              className="flex items-center gap-1 text-[#00786F] hover:text-[#005F5A] border-none bg-transparent"
               type="text"
             >
               Refresh
@@ -85,7 +85,7 @@ export const DataTable = <T extends object>({
                   <Button
                     icon={<ReloadOutlined />}
                     onClick={onRefresh}
-                    className="bg-[#1d4ed8] text-white hover:bg-[#1e40af]"
+                    className="bg-[#00786F] text-white hover:bg-[#005F5A]"
                   >
                     Retry
                   </Button>

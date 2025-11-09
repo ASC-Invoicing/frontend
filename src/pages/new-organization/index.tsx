@@ -1,81 +1,145 @@
-import React, { useState } from 'react';
-import { FileText, Plus, Save, ChevronLeft, ArrowLeft } from 'lucide-react';
-import { Button, Input } from '../../components/ui';
-import { CustomTextArea } from '../../components/ui/textarea';
-import { Link } from 'react-router-dom';
-
-const PRIMARY_BLUE = "#00529A";
-
-
-
-
-
+import React, { useState } from "react";
+import { ArrowLeft, Save, Search } from "lucide-react";
+import { Button, Input } from "../../components/ui";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../../components/ui/toast/toastProvider";
+import {
+    useVerifyTINMutation,
+    useCreateOrganizationMutation,
+} from "../../features/organizations/organization-slice";
+import { useDispatch } from "react-redux";
+import { setActiveOrg } from "../../store/orgContextSlice";
 const CreateOrganization = () => {
-    const [formData, setFormData] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
+    const { showToast } = useToast();
+    const navigate = useNavigate();
+    const [verifyTIN, { isLoading: verifying }] = useVerifyTINMutation();
+    const [createOrganization, { isLoading: creating }] =
+        useCreateOrganizationMutation();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setIsSaving(true);
-        console.log("Saving organization data:", formData);
-        // Simulate API call delay
-        setTimeout(() => {
-            setIsSaving(false);
-            alert("Organization created successfully! (Simulated)");
-            // In a real app, you would redirect the user here.
-        }, 1500);
+    const [tin, setTin] = useState("");
+    const [verifiedData, setVerifiedData] = useState<any>(null);
+    const dispatch = useDispatch();
+
+    const handleVerify = async () => {
+        if (!tin.trim()) return showToast("Enter a TIN to verify", "error");
+        try {
+            const res = await verifyTIN(tin).unwrap();
+            if (res.success && res.data.Verified) {
+                setVerifiedData(res.data);
+                showToast("TIN verified successfully!", "success");
+            } else {
+                showToast(res.message || "TIN not verified", "error");
+            }
+        } catch (err: any) {
+            showToast(err?.data?.message || "Verification failed", "error");
+        }
     };
 
+    const handleCreate = async () => {
+        if (!verifiedData) return showToast("Please verify a TIN first", "error");
+
+        try {
+            const res = await createOrganization({
+                CompanyName: verifiedData.CompanyName,
+                TIN: tin,
+            }).unwrap();
+
+            if (res.success) {
+                dispatch(setActiveOrg({ slug: res.data.Slug, name: res.data.CompanyName }));
+                showToast("Organization created successfully!", "success");
+
+                setVerifiedData(null);
+                setTin("");
+                
+                dispatch(setActiveOrg({ slug: res.data.Slug, name: res.data.CompanyName }));
+                showToast("Organization created successfully!", "success");
+                setVerifiedData(null);
+                setTin("");
+                navigate(`/${res.data.Slug}/dashboard`, { replace: true });
+
+            } else {
+                showToast(res.message || "Failed to create organization", "error");
+            }
+        } catch (err: any) {
+            showToast(err?.data?.message || "Creation failed", "error");
+        }
+    };
+
+
+
+
     return (
-        <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
-
-
-            {/* Main Content Area: Centered Form */}
+        <div className="flex flex-col font-sans min-h-screen">
             <div className="flex-1 flex justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="w-full max-w-4xl space-y-8">
-
-                    {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="bg-white p-8 px-0 pt-0 rounded-xl shadow-2xl border border-gray-200">
-                        <div className='bg-[#EEF3FF] p-8 mb-8 flex-wrap flex gap-6 items-center'>
-                            <Link to={'/dashboard'}>
-                                <ArrowLeft className="w-4 h-4 hover:text-blue-300 " />
+                <div className="w-full max-w-3xl space-y-8">
+                    <form className="bg-white p-8 rounded-xl shadow-2xl border border-gray-200">
+                        {/* Header */}
+                        <div className="bg-teal-50 p-6 mb-8 flex gap-4 items-center">
+                            <Link to={"/dashboard"}>
+                                <ArrowLeft className="w-4 h-4 hover:text-[#00786F]" />
                             </Link>
                             <div>
-                                <h2 className="text-xl font-semibold flex items-center">
-                                    Create Your Organization
-                                </h2>
-                                <p className='text-gray-500 mt-1 text-sm'>Set up your company profile for FIRS compliance</p>
+                                <h2 className="text-lg font-semibold">Create Organization</h2>
+                                <p className="text-gray-500 text-sm">
+                                    We will use the TIN you provide to create your organization.
+                                </p>
                             </div>
                         </div>
-                        <div className="space-y-10 px-8">
 
-                            {/* Section: Company Information */}
-                            <div className="space-y-6">
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input label="Company Name" id="companyName" placeholder="e.g., Acme Nigeria Ltd" required />
-                                    <Input label="Tax Identification Number (TIN)" id="tin" placeholder="TIN (e.g., 12345678-0001)" required />
-                                    <Input label="Business Email" id="email" placeholder="billing@acme.com" type="email" required />
-                                    <Input label="Phone" id="phone" placeholder="+234 800 123 4567" type="tel" required />
+                        {/* Step 1: Verify TIN */}
+                        <div className="grid grid-cols-1  gap-6 mb-6">
+                            <div className="flex flex-col w-full">
+                                <label className="text-sm font-medium mb-1">Enter TIN</label>
+                                <div className="flex w-full border border-gray-300 rounded-md overflow-hidden">
+                                    <input
+                                        type="text"
+                                        id="tin"
+                                        value={tin}
+                                        onChange={(e) => setTin(e.target.value)}
+                                        placeholder="e.g., 25156944-0001"
+                                        className="flex-1 w-20 px-3 py-2.5 text-sm outline-none focus:ring-0 focus:border-none"
+                                    />
+                                    <Button
+                                        onClick={handleVerify}
+                                        icon={<Search className="w-4 h-4" />}
+                                        loading={verifying}
+                                        loadingText="Verifying"
+                                        type="button"
+                                        className="!rounded-none !shadow-none border-l border-gray-300"
+                                    >
+                                        Verify
+                                    </Button>
                                 </div>
-                                <Input label="Industry" id="industry" placeholder="e.g., Retail Store, Consulting" required />
-                                <CustomTextArea label="Registered Address" id="address" placeholder="123 Main Street, Lagos" isTextArea required />
                             </div>
-
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="mt-4 flex justify-end px-8">
-                            <Button
-                                type="submit"
-                                icon={<Save className="w-4 h-4" />}
-                                className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
-                                disabled={isSaving}
-                                loadingText="Creating Organization"
-                            >
-                              Create Organization
-                            </Button>
-                        </div>
+
+                        {/* Step 2: Show Verified Info */}
+                        {verifiedData && (
+                            <div className="border-t border-gray-200 pt-6 mt-4">
+                                <h3 className="text-gray-700 font-semibold mb-4">
+                                    Organization Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Input label="Company Name" value={verifiedData.CompanyName} disabled />
+                                    <Input label="Tax Office" value={verifiedData.TaxOffice} disabled />
+                                    <Input label="RC Number" value={verifiedData.RCNumber} disabled />
+                                    <Input label="Business Email" value={verifiedData.BusinessEmail} disabled />
+                                    <Input label="Phone Number" value={verifiedData.PhoneNumber} disabled />
+                                </div>
+
+                                <div className="mt-6 flex justify-end">
+                                    <Button
+                                        icon={<Save className="w-4 h-4" />}
+                                        onClick={handleCreate}
+                                        loading={creating}
+                                        loadingText="Creating"
+                                    >
+                                        Create Organization
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>
@@ -84,3 +148,5 @@ const CreateOrganization = () => {
 };
 
 export default CreateOrganization;
+
+

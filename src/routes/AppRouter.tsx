@@ -14,42 +14,82 @@ import CreateOrganization from "../pages/new-organization";
 import CreateInvoice from "../pages/invoices/new-invoice";
 import CreateCustomer from "../pages/customers/new-customer";
 import CreateProduct from "../pages/products/new-product";
+import EmailVerificationPage from "../pages/email-verification";
+import { ProtectedRoute } from "./ProtectedRoute";
+import { PublicRoute } from "./PublicRoute";
+import { useAuthInit } from "../hooks/useAuthInit";
+import { OrgProtectedRoute } from "./OrgProtectedRoute";
 
 export const AppRouter = () => {
+  useAuthInit();
 
-    return (
-        <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Navigate to="/login" />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* Public routes */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <EmailVerificationPage />
+            </PublicRoute>
+          }
+        />
+
+        {/* Onboarding route for logged-in users without an organization */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <CreateOrganization />
+            </ProtectedRoute>
+          }
+        />
 
 
-                <Route path="/onboarding" element={<CreateOrganization />} />
-                {/* Protected dashboard routes */}
-                <Route
-                    path="/"
-                    element={
-                        // <ProtectedRoute>
-                        <DashboardLayout />
-                        /* </ProtectedRoute> */
-                    }
-                >
-                    <Route path="dashboard" element={<DashboardPage />} />
-                    <Route path="invoices" element={<InvoicesPage />} />
-                    <Route path="customers" element={<CustomersPage />} />
-                    <Route path="products" element={<ProductPage />} />
-                    <Route path="settings" element={<SettingsPage />} />
-                    <Route path="reports" element={<ReportsPage />} />
-                    <Route path="invoices/create-invoice" element={<CreateInvoice />} />
-                    <Route path="customers/create-customer" element={<CreateCustomer />} />
-                    <Route path="products/create-product" element={<CreateProduct />} />
-                </Route>
+        <Route
+          path="/:orgSlug"
+          element={
+            <OrgProtectedRoute>
+              <DashboardLayout />
+            </OrgProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="invoices/create-invoice" element={<CreateInvoice />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/create-customer" element={<CreateCustomer />} />
+          <Route path="products" element={<ProductPage />} />
+          <Route path="products/create-product" element={<CreateProduct />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+        </Route>
 
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-        </BrowserRouter>
-    );
+
+        {/* Fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
 };

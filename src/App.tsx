@@ -11,9 +11,7 @@ export default function App() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#1d4ed8",
-          borderRadius: 8,
-          fontFamily: "Inter, sans-serif",
+
         },
       }}
     >
