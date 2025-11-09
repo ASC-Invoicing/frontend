@@ -4,7 +4,7 @@ import App from "./App";
 import "./index.css";
 import { Provider } from "react-redux";
 import { store } from "./store";
-import { ConfigProvider, App as AntApp } from "antd";
+import { ConfigProvider, } from "antd";
 import { ToastProvider } from "./components/ui/toast/toastProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
