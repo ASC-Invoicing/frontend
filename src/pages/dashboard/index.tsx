@@ -55,12 +55,12 @@ const StatusCard: React.FC<StatusCardData> = ({
     {/* Decorative half circle in background */}
     <div
       className={`absolute -top-6 -right-10 w-30 h-28 rounded-full opacity-30 ${color.includes("blue")
-          ? "bg-blue-200"
-          : color.includes("green")
-            ? "bg-green-200"
-            : color.includes("yellow")
-              ? "bg-yellow-200"
-              : "bg-red-200"
+        ? "bg-blue-200"
+        : color.includes("green")
+          ? "bg-green-200"
+          : color.includes("yellow")
+            ? "bg-yellow-200"
+            : "bg-red-200"
         }`}
     />
 
@@ -68,12 +68,12 @@ const StatusCard: React.FC<StatusCardData> = ({
       <h3 className="text-sm font-semibold text-gray-600">{title}</h3>
       <div
         className={`p-3 rounded-xl shadow-md text-white ${color.includes("blue")
-            ? "bg-[#2A6BED]"
-            : color.includes("green")
-              ? "bg-[#1CB454]"
-              : color.includes("yellow")
-                ? "bg-[#D89B06]"
-                : "bg-[#E63737]"
+          ? "bg-[#2A6BED]"
+          : color.includes("green")
+            ? "bg-[#1CB454]"
+            : color.includes("yellow")
+              ? "bg-[#D89B06]"
+              : "bg-[#E63737]"
           }`}
       >
         <Icon className="w-5 h-5" />
@@ -171,14 +171,14 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div className="flex flex-col flex-grow bg-gray-50 font-sans">
+    <div className="flex flex-col flex-grow font-sans">
       {/* Header */}
       <Header
-        icon={<LayoutDashboard className="w-6 h-6 text-[#00529A]" />}
+        icon={<LayoutDashboard className="w-6 h-6 text-[#00786F]" />}
         title="FIRS Compliance Dashboard"
         description="Track your invoice submissions and validation status"
         actions={
-          <Link to={'/invoices/create-invoice'}>
+          <Link to="../invoices/create-invoice">
             <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
               Submit New Invoice
             </Button>

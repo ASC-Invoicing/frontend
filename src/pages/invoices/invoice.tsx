@@ -170,7 +170,7 @@ const InvoicesPage: React.FC = () => {
             title: "Actions",
             key: "actions",
             render: () => (
-                <button className="text-[#2563EB] cursor-pointer hover:text-[#1d4ed8] p-1 rounded-md transition-colors">
+                <button className="text-[#2563EB] cursor-pointer hover:text-[#00786F] p-1 rounded-md transition-colors">
                     <Pencil className="w-4 h-4" />
                 </button>
             ),
@@ -178,10 +178,10 @@ const InvoicesPage: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
+        <div className="flex flex-col font-sans min-h-screen">
             {/* Header */}
             <Header
-                icon={<FileText className="w-6 h-6 text-[#00529A]" />}
+                icon={<FileText className="w-6 h-6 text-[#00786F]" />}
                 title="Invoices"
                 description="Manage and track all your invoices"
                 actions={[
@@ -193,7 +193,7 @@ const InvoicesPage: React.FC = () => {
                         Bulk Upload
                     </Button>,
 
-                    <Link to={'create-invoice'}>
+                  <Link to="create-invoice">
                         <Button
                             key="create"
                             variant="solid"

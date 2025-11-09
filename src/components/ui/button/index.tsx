@@ -27,17 +27,17 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const base = clsx(
 
-    "relative select-none cursor-pointer items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none",
+    "relative select-none cursor-pointer items-center justify-center h-12 font-medium rounded-md transition-all duration-200 focus:outline-none",
     "gap-2 leading-none",
     {
       // variants
-      "bg-[#1d4ed8] text-white hover:bg-[#1e40af] focus:ring-[#1d4ed8]":
+      "bg-[#00786F] text-white hover:bg-[#005F5A] focus:ring-[#00786F]":
         variant === "solid",
-      "border border-[#1d4ed8] text-[#1d4ed8] hover:bg-[#1d4ed8]/10 focus:ring-[#1d4ed8]":
+      "border border-[#00786F] text-[#00786F] hover:bg-[#00786F]/10 focus:ring-[#00786F]":
         variant === "outline",
-      "text-[#1d4ed8] hover:bg-[#1d4ed8]/5 focus:ring-[#1d4ed8]":
+      "text-[#00786F] hover:bg-[#00786F]/5 focus:ring-[#00786F]":
         variant === "ghost",
-      "bg-[#1E293B] text-white hover:bg-[#3F4C5F] focus:ring-[#1d4ed8]":
+      "bg-[#1E293B] text-white hover:bg-[#3F4C5F] focus:ring-[#00786F]":
         variant === "dark",
 
       "h-8 px-3 text-sm": size === "sm",

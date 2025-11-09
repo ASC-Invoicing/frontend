@@ -114,10 +114,10 @@ const ReportsPage: React.FC = () => {
       : '0.0';
 
   return (
-    <div className="flex flex-col flex-grow bg-gray-50 font-sans">
+    <div className="flex flex-col flex-grow font-sans">
       {/* Header */}
       <Header
-        icon={<BarChart3 className="w-6 h-6 text-[#00529A]" />}
+        icon={<BarChart3 className="w-6 h-6 text-[#00786F]" />}
         title="FIRS Compliance Reports"
         description="Track your submission history and compliance metrics"
         actions={

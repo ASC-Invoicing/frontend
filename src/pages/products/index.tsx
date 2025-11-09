@@ -129,15 +129,15 @@ const ProductPage = () => {
     });
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
+        <div className="flex flex-col min-h-screen font-sans">
 
             {/* Header */}
             <Header
-                icon={<ShoppingBag className="w-6 h-6 text-[#00529A]" />}
+                icon={<ShoppingBag className="w-6 h-6 text-[#00786F]" />}
                 title="Products & Services"
                 description="Manage your product catalog"
                 actions={
-                    <Link to={'/products/create-product'}>
+                   <Link to="create-product">
                         <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
                             Add Product
                         </Button>
@@ -152,7 +152,7 @@ const ProductPage = () => {
 
                     <Input
                         icon={<Search className="w-5 h-5" />}
-                        placeholder="Search products..."
+                        placeholder="Search products"
                         type="text"
                         name="search"
                         value={searchTerm}

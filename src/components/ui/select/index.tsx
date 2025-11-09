@@ -15,7 +15,7 @@ export const Select = ({ label, error, options, className, ...props }: Props) =>
     <AntSelect
       {...props}
       options={options}
-      className="rounded-md !h-[39px] border-gray-300 focus:border-[#1d4ed8]"
+      className="rounded-md !h-[39px] border-gray-300 focus:border-[#00786F]"
       style={{ width: "100%" }}
     />
     {error && <span className="text-xs text-red-500">{error}</span>}

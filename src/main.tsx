@@ -2,9 +2,25 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { Provider } from "react-redux";
+import { store } from "./store";
+import { ConfigProvider, App as AntApp } from "antd";
+import { ToastProvider } from "./components/ui/toast/toastProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: "#00786F",
+          },
+        }}
+      >
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+      </ConfigProvider>
+    </Provider>
   </React.StrictMode>
 );
