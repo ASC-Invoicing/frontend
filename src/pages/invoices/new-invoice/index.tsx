@@ -9,13 +9,14 @@ import {
   useCreateInvoiceMutation,
   useAddLineItemMutation,
   useUpdateLineItemMutation,
-  useDeleteLineItemMutation
+  useDeleteLineItemMutation,
 } from "../../../features/invoices/invoice-slice";
+import { useListProductsQuery } from "../../../features/products/product-slice"; // ✅ import this
 import type { Organization } from "../../../features/organizations/organization-slice";
 
 interface LineItem {
   id: number;
-  UID?: string; // backend line item UID
+  UID?: string;
   Description: string;
   Quantity: number;
   UnitPrice: number;
@@ -28,6 +29,7 @@ interface ProductOption {
   unitPrice: number;
   taxRate: number;
 }
+
 interface OutletContext {
   currentOrg: Organization | undefined;
 }
@@ -37,13 +39,20 @@ const CreateInvoice = () => {
   const orgUID = currentOrg?.UID;
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  // ✅ Fetch products for the current organization
+  const { data: productsData, isLoading: isProductsLoading } = useListProductsQuery(
+    { orgUID: orgUID! },
+    { skip: !orgUID }
+  );
+
   const [createInvoice, { isLoading }] = useCreateInvoiceMutation();
   const [addLineItem] = useAddLineItemMutation();
   const [updateLineItem] = useUpdateLineItemMutation();
   const [deleteLineItem] = useDeleteLineItemMutation();
-  const [isSubmitting, setIsSubmitting] = useState(false); 
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [invoiceUID, setInvoiceUID] = useState<string | null>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [customerTIN, setCustomerTIN] = useState("");
@@ -51,15 +60,19 @@ const CreateInvoice = () => {
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
 
-  const ProductData: ProductOption[] = [
-    { value: "goods", label: "Goods", unitPrice: 20000, taxRate: 7.5 },
-    { value: "tech", label: "Technology Service", unitPrice: 45000, taxRate: 7.5 },
-    { value: "food", label: "Foodstuff", unitPrice: 10000, taxRate: 5.0 },
-  ];
+  // ✅ Transform products into dropdown options
+  const ProductOptions: ProductOption[] =
+    productsData?.data?.map((p) => ({
+      value: p.UID!,
+      label: p.Name,
+      unitPrice: p.UnitPrice,
+      taxRate: p.TaxRate,
+    })) || [];
 
-  const handleAddFromProducts = async (value: string) => {
-    const selected = ProductData.find((p) => p.label === value);
+  const handleAddFromProducts = async (productUID: string) => {
+    const selected = ProductOptions.find((p) => p.value === productUID);
     if (!selected) return;
+
     const newItem: LineItem = {
       id: Date.now(),
       Description: selected.label,
@@ -68,7 +81,7 @@ const CreateInvoice = () => {
       TaxRate: selected.taxRate,
     };
 
-    setLineItems(prev => [...prev, newItem]);
+    setLineItems((prev) => [...prev, newItem]);
 
     if (invoiceUID && orgUID) {
       try {
@@ -78,11 +91,14 @@ const CreateInvoice = () => {
           Description: newItem.Description,
           Quantity: newItem.Quantity,
           UnitPrice: newItem.UnitPrice,
-          TaxRate: newItem.TaxRate
+          TaxRate: newItem.TaxRate,
         }).unwrap();
 
-        // Save backend UID
-        setLineItems(prev => prev.map(item => item.id === newItem.id ? { ...item, UID: res.data?.UID } : item));
+        setLineItems((prev) =>
+          prev.map((item) =>
+            item.id === newItem.id ? { ...item, UID: res.data?.UID } : item
+          )
+        );
         showToast("Line item added", "success");
       } catch (err) {
         showToast("Failed to add line item", "error");
@@ -299,12 +315,17 @@ const CreateInvoice = () => {
                   <h3 className="text-xl font-semibold text-gray-800">Line Items</h3>
                   <div className="flex gap-3">
                     <Select
-                      options={ProductData.map((opt) => ({
-                        value: opt.label,
+                      options={ProductOptions.map((opt) => ({
+                        value: opt.value,
                         label: opt.label,
                       }))}
                       className="w-[250px]"
-                      placeholder="Add from products"
+                      placeholder={
+                        isProductsLoading
+                          ? "Loading products..."
+                          : "Add from products"
+                      }
+                      disabled={isProductsLoading || !ProductOptions.length}
                       onChange={handleAddFromProducts}
                     />
                     <Button

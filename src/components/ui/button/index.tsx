@@ -5,7 +5,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   loadingText?: string;
-  variant?: "solid" | "outline" | "ghost" | "dark";
+  variant?: "solid" | "outline" | "ghost" | "dark" | "destructive";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   icon?: React.ReactNode;
@@ -39,6 +39,10 @@ export const Button: React.FC<ButtonProps> = ({
         variant === "ghost",
       "bg-[#1E293B] text-white hover:bg-[#3F4C5F] focus:ring-[#00786F]":
         variant === "dark",
+      "bg-red-500 text-white hover:hover:bg-red-600 focus:ring-red-500":
+        variant === "destructive",
+
+       
 
       "h-8 px-3 text-sm": size === "sm",
       "h-10 px-4 text-base": size === "md",
