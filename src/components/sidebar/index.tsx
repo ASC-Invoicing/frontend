@@ -162,7 +162,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                             </div>
                             {orgLoading ? (
                                 <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
-                                    <LoadingSpinner size={16} /> Loading
+                                    <LoadingSpinner /> Loading
                                 </div>
                             ) : organizations.length > 0 ? (
                                 organizations.map((org) => (
@@ -254,7 +254,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                                 Cancel
                             </Button>
                             <Button
-                                className="bg-red-500 hover:bg-red-600"
+                                variant="destructive"
                                 onClick={performLogout}
                             >
                                 Logout

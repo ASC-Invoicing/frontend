@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { LoadingSpinner } from "../ui";
 
+
+
 interface SplashScreenProps {
   logo?: string;
   title?: string;
@@ -23,7 +25,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
     <div
       className={`fixed inset-0 flex flex-col items-center justify-center bg-[#faffff] z-50`}
     >
-      <LoadingSpinner size="4xl" />
+      <LoadingSpinner />
       <div className="flex text-4xl font-semibold text-[#00786F] mb-6 overflow-hidden">
         {title.split("").map((char, index) => {
           const delay = index * 100; 

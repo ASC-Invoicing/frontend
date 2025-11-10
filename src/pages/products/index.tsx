@@ -1,180 +1,343 @@
-import React, { useState } from 'react';
-import { Search, Plus, Pencil, Trash2, ShoppingBag } from 'lucide-react';
-import { Button as AntButton, Empty } from "antd";
-import { Button, Input } from '../../components/ui';
-import { Header } from '../../components/header';
-import { Link } from 'react-router-dom';
+import { useState, type ChangeEvent } from "react";
+import { Search, Plus, Pencil, Trash2, ShoppingBag } from "lucide-react";
+import { Empty, Modal } from "antd";
+import { Button, Input, LoadingSpinner } from "../../components/ui";
+import { Header } from "../../components/header";
+import { Link, useOutletContext } from "react-router-dom";
+import { useToast } from "../../components/ui/toast/ToastProvider";
+import {
+    useListProductsQuery,
+    useListCategoriesQuery,
+    useCreateCategoryMutation,
+    useUpdateCategoryMutation,
+    useDeleteCategoryMutation,
+    useUpdateProductMutation,
+    useDeleteProductMutation,
+} from "../../features/products/product-slice";
+import type { Organization } from "../../features/organizations/organization-slice";
+import { CreateCategoryModal } from "./product-category";
+import { EditCategoryModal } from "./product-category/EditCategory";
+import { EditProductModal } from "./EditProductModal";
 
-type ProductType = 'services' | 'digital services' | 'physical goods';
-
-interface Product {
-    id: string;
-    name: string;
-    type: ProductType;
-    description: string;
-    unitPrice: number;
-    taxRate: number;
+interface OutletContext {
+    currentOrg: Organization | undefined;
 }
 
-const mockProducts: Product[] = [
-    {
-        id: 'PROD-001',
-        name: 'Business Consulting Services',
-        type: 'services',
-        description: 'Professional business advisory and consulting services',
-        unitPrice: 250000,
-        taxRate: 7.5
-    },
-    {
-        id: 'PROD-002',
-        name: 'Software Development',
-        type: 'digital services',
-        description: 'Custom software development and implementation',
-        unitPrice: 500000,
-        taxRate: 7.5
-    },
-    {
-        id: 'PROD-003',
-        name: 'IT Support & Maintenance',
-        type: 'services',
-        description: 'Monthly IT infrastructure support and maintenance',
-        unitPrice: 150000,
-        taxRate: 7.5
-    },
-    {
-        id: 'PROD-004',
-        name: 'Enterprise Hardware Leasing',
-        type: 'physical goods',
-        description: 'Long-term leasing of server hardware and networking equipment.',
-        unitPrice: 850000,
-        taxRate: 7.5
-    },
-];
+interface Product {
+    UID?: string;
+    Name: string;
+    Description?: string;
+    UnitPrice: number;
+    TaxRate: number;
+    Category?: { Name: string };
+}
 
-const currencyFormatter = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 2,
-});
+interface ProductCategory {
+    UID?: string;
+    Name: string;
+    Description?: string;
+}
 
+// --- Tabs Component ---
+const CategoryTabs: React.FC<{
+    categories: ProductCategory[];
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
+    onEdit: (category: ProductCategory) => void;
+}> = ({ categories, activeTab, setActiveTab, onEdit }) => (
+    <div className="flex flex-wrap bg-[#F4F4F5] p-2 gap-2 rounded-md mb-4">
+        <button
+            className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors ${activeTab === "All" ? "bg-white text-black" : "text-gray-500 hover:bg-white hover:text-black"
+                }`}
+            onClick={() => setActiveTab("All")}
+        >
+            All
+        </button>
 
-const TypeTag: React.FC<{ type: ProductType }> = ({ type }) => {
-    let colorClass = 'bg-purple-100 text-purple-700'; // Default: services
-    if (type === 'digital services') colorClass = 'bg-green-100 text-green-700';
-    if (type === 'physical goods') colorClass = 'bg-orange-100 text-orange-700';
-
-    return (
-        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${colorClass}`}>
-            {type.replace(' ', ' ')}
-        </span>
-    );
-};
-
-const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-    return (
-        <div className="bg-white p-6 rounded-xl shadow-md flex flex-col justify-between transition-shadow duration-200 hover:shadow-lg">
-
-            {/* Header and Actions */}
-            <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-bold text-gray-900 leading-tight pr-4">
-                    {product.name}
-                </h2>
-                <div className="flex space-x-2  flex-shrink-0">
-                    <button className="text-gray-500 cursor-pointer hover:text-[#2563EB] p-1 rounded-md transition-colors">
-                        <Pencil className="w-4 h-4" />
-                    </button>
-                    <button className="text-gray-500 cursor-pointer hover:text-red-500 p-1 rounded-md transition-colors">
-                        <Trash2 className="w-4 h-4" />
+        {categories.map((cat) => (
+            <div key={cat.UID} className="relative gap-2 flex ">
+                <div
+                    className={`px-2 py-2 cursor-pointer text-sm flex gap-1 font-medium rounded-md cursor-pointer transition-colors ${activeTab === cat.Name ? "bg-white text-black" : "text-gray-500 hover:bg-white hover:text-black"
+                        }`}
+                    onClick={() => setActiveTab(cat.Name)}
+                >
+                    <button className="cursor-pointer">{cat.Name}</button>
+                    <button
+                        className="cursor-pointer text-gray-400 hover:text-blue-500"
+                        onClick={() => onEdit(cat)}
+                    >
+                        <Pencil className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>
+        ))}
+    </div>
+);
 
-            {/* Body Content */}
-            <div className="flex-grow mb-4">
-                <div className="mb-3">
-                    <TypeTag type={product.type} />
-                </div>
-                <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-            </div>
-
-            {/* Footer Details */}
-            <div className="pt-4 border-t border-gray-100 space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 font-medium">Unit Price</span>
-                    <span className="text-lg font-bold text-[#2563EB]">
-                        {currencyFormatter.format(product.unitPrice)}
-                    </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 font-medium">Tax Rate</span>
-                    <span className="font-semibold text-gray-800">{product.taxRate}%</span>
-                </div>
+// --- Product Card with Edit/Delete ---
+const ProductCard: React.FC<{
+    product: Product;
+    onEdit: (product: Product) => void;
+    onDelete: (product: Product) => void;
+}> = ({ product, onEdit, onDelete }) => (
+    <div className="bg-white p-6 rounded-xl shadow-md flex flex-col justify-between transition-shadow duration-200 hover:shadow-lg">
+        <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold text-gray-900 leading-tight pr-4">{product.Name}</h2>
+            <div className="flex space-x-2 flex-shrink-0">
+                <button
+                    className="text-gray-500 cursor-pointer hover:text-[#2563EB] p-1 rounded-md transition-colors"
+                    onClick={() => onEdit(product)}
+                >
+                    <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                    className="text-gray-500 cursor-pointer hover:text-red-500 p-1 rounded-md transition-colors"
+                    onClick={() => onDelete(product)}
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
             </div>
         </div>
+        <div className="flex-grow mb-4">
+            <div className="mb-3">
+                <span className="text-xs font-medium text-gray-500">{product.Category?.Name || "Uncategorized"}</span>
+            </div>
+            <p className="text-sm text-gray-600 line-clamp-2">{product.Description || "No description"}</p>
+        </div>
+        <div className="pt-4 border-t border-gray-100 space-y-2">
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 font-medium">Unit Price</span>
+                <span className="text-lg font-bold text-[#2563EB]">₦{product.UnitPrice.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 font-medium">Tax Rate</span>
+                <span className="font-semibold text-gray-800">{product.TaxRate}%</span>
+            </div>
+        </div>
+    </div>
+);
+
+const ProductPage: React.FC = () => {
+    const { currentOrg } = useOutletContext<OutletContext>();
+    const orgUID = currentOrg?.UID;
+    const { showToast } = useToast();
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<any>(null);
+    const [editProductModalOpen, setEditProductModalOpen] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [activeTab, setActiveTab] = useState("All");
+
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [categoryToEdit, setCategoryToEdit] = useState<ProductCategory | null>(null);
+    const [categoryToDelete, setCategoryToDelete] = useState<ProductCategory | null>(null);
+    const [newCategoryName, setNewCategoryName] = useState("");
+    const [newCategoryDescription, setNewCategoryDescription] = useState("");
+
+    const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+    const { data: productsData, isLoading: isProductsLoading } = useListProductsQuery(
+        { orgUID: orgUID! },
+        { skip: !orgUID }
     );
-};
+    const { data: categoriesData, isLoading: isCategoriesLoading } = useListCategoriesQuery();
+    const [createCategory] = useCreateCategoryMutation();
+    const [updateCategory] = useUpdateCategoryMutation();
+    const [deleteCategory] = useDeleteCategoryMutation();
 
+    const [updateProduct] = useUpdateProductMutation();
+    const [deleteProduct] = useDeleteProductMutation();
 
-const ProductPage = () => {
-    const [searchTerm, setSearchTerm] = useState('');
+    const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value);
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
+    const filteredProducts =
+        productsData?.data?.filter(
+            (p) =>
+                (activeTab === "All" || p.Category?.Name === activeTab) &&
+                (p.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.Description?.toLowerCase().includes(searchTerm.toLowerCase()))
+        ) || [];
+
+    // --- Category Handlers ---
+    const handleCategorySave = async () => {
+        try {
+            if (categoryToEdit) {
+                await updateCategory({
+                    UID: categoryToEdit.UID!,
+                    Name: newCategoryName,
+                    Description: newCategoryDescription,
+                }).unwrap();
+                showToast("Category updated successfully!", "success");
+            } else {
+                await createCategory({
+                    Name: newCategoryName,
+                    Description: newCategoryDescription,
+                }).unwrap();
+                showToast("Category created successfully!", "success");
+            }
+            setCategoryToEdit(null);
+            setNewCategoryName("");
+            setNewCategoryDescription("");
+            setIsCategoryModalOpen(false);
+        } catch (err: any) {
+            showToast(err?.data?.message || "Failed to save category", "error");
+        }
     };
 
-    const filteredProducts = mockProducts.filter(product => {
-        const term = searchTerm.toLowerCase();
-        return product.name.toLowerCase().includes(term) ||
-            product.description.toLowerCase().includes(term);
-    });
+    const confirmDeleteCategory = async () => {
+        if (!categoryToDelete) return;
+        try {
+            await deleteCategory({ UID: categoryToDelete.UID! }).unwrap();
+            showToast("Category deleted successfully!", "success");
+            setCategoryToDelete(null);
+        } catch (err) {
+            showToast("Failed to delete category", "error");
+        }
+    };
+
+    const handleEditCategory = (cat: ProductCategory) => {
+        setSelectedCategory(cat);
+        setEditModalOpen(true);
+    };
+
+    const handleEditProduct = (product: Product) => {
+        setProductToEdit(product);
+        setEditProductModalOpen(true);
+    };
+
+
+    const handleDeleteProduct = (product: Product) => {
+        setProductToDelete(product);
+    };
+
+    const confirmDeleteProduct = async () => {
+        if (!productToDelete || !orgUID) return;
+        try {
+            await deleteProduct({ UID: productToDelete.UID!, orgUID }).unwrap();
+            showToast("Product deleted successfully!", "success");
+            setProductToDelete(null);
+        } catch (err) {
+            showToast("Failed to delete product", "error");
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen font-sans">
-
             {/* Header */}
             <Header
                 icon={<ShoppingBag className="w-6 h-6 text-[#00786F]" />}
                 title="Products & Services"
                 description="Manage your product catalog"
                 actions={
-                   <Link to="create-product">
-                        <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
-                            Add Product
+                    <div className="flex space-x-2">
+                        <Button
+                            icon={<Plus className="w-4 h-4" />}
+                            onClick={() => {
+                                setSelectedCategory(null);
+                                setEditModalOpen(false);
+                                setIsCategoryModalOpen(true);
+                            }}
+                            className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200"
+                        >
+                            Add Category
                         </Button>
-                    </Link>
+
+                        <Link to="create-product">
+                            <Button icon={<Plus className="w-4 h-4" />}>Add Product</Button>
+                        </Link>
+                    </div>
                 }
             />
 
-            {/* Search Input */}
+            {/* Search */}
             <div className="py-3">
                 <div className="relative max-w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-
                     <Input
                         icon={<Search className="w-5 h-5" />}
                         placeholder="Search products"
                         type="text"
-                        name="search"
                         value={searchTerm}
                         onChange={handleSearchChange}
-                    ></Input>
+                    />
                 </div>
             </div>
 
-            {/* Product Cards */}
-            <main className="py-4 flex-grow">
+            {/* Category Tabs */}
+            {isCategoriesLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <CategoryTabs
+                    categories={categoriesData?.data || []}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    onEdit={handleEditCategory}
+                />
+            )}
+
+            {/* Products Grid */}
+            {isProductsLoading ? (
+                <LoadingSpinner />
+            ) : filteredProducts.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-gray-500 rounded-xl mt-6">
+                    <Empty description="No products found for this category." />
+                </div>
+            ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard
+                            key={product.UID ?? product.Name}
+                            product={product}
+                            onEdit={handleEditProduct}
+                            onDelete={handleDeleteProduct}
+                        />
                     ))}
                 </div>
+            )}
 
-                {filteredProducts.length === 0 && (
-                    <div className="py-12 flex flex-col items-center justify-center text-gray-500 rounded-xl mt-6">
-                        <Empty description=" No products or services found matching your criteria." />
-                    </div>
-                )}
-            </main>
+            {/* Edit/Create Category Modal */}
+            <CreateCategoryModal
+                open={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+            />
+
+            {/* Delete Confirmation Modals */}
+            <Modal
+                open={!!categoryToDelete}
+                title="Confirm Delete"
+                onOk={confirmDeleteCategory}
+                onCancel={() => setCategoryToDelete(null)}
+                okText="Delete"
+                okType="danger"
+            >
+                Are you sure you want to delete the category "{categoryToDelete?.Name}"?
+            </Modal>
+
+            <Modal
+                open={!!productToDelete}
+                title="Confirm Delete"
+                onOk={confirmDeleteProduct}
+                onCancel={() => setProductToDelete(null)}
+                okText="Delete"
+                okType="danger"
+            >
+                Are you sure you want to delete the product "{productToDelete?.Name}"?
+            </Modal>
+
+            <EditCategoryModal
+                open={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                category={selectedCategory}
+            />
+
+            <EditProductModal
+                open={editProductModalOpen}
+                onClose={() => setEditProductModalOpen(false)}
+                product={productToEdit}
+                orgUID={orgUID}
+            />
+
         </div>
     );
 };
