@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { ArrowLeft, Save, Search } from "lucide-react";
 import { Button, Input } from "../../components/ui";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { useToast } from "../../components/ui/toast/ToastProvider";
 import {
     useVerifyTINMutation,
     useCreateOrganizationMutation,
+    type Organization,
 } from "../../features/organizations/organization-slice";
 import { useDispatch } from "react-redux";
 import { setActiveOrg } from "../../store/orgContextSlice";
+
 const CreateOrganization = () => {
     const { showToast } = useToast();
     const navigate = useNavigate();

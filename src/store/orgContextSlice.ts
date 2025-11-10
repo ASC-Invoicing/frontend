@@ -1,13 +1,15 @@
 import { createSlice,type PayloadAction } from "@reduxjs/toolkit";
 
 interface ActiveOrgState {
+  currentOrg: any;
   slug: string | null;
   name: string | null;
 }
 
 const initialState: ActiveOrgState = {
-  slug: null,
-  name: null,
+    slug: null,
+    name: null,
+    currentOrg: undefined
 };
 
 const orgContextSlice = createSlice({

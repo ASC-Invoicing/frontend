@@ -1,142 +1,230 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type FormEvent, type SetStateAction } from "react";
 import { FileText, ArrowLeft, Plus, X, Send, Trash2 } from "lucide-react";
 import { Button, Input, Select } from "../../../components/ui";
 import { CustomTextArea } from "../../../components/ui/textarea";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { DataTable } from "../../../components/ui/table";
+import { useToast } from "../../../components/ui/toast/ToastProvider";
+import {
+  useCreateInvoiceMutation,
+  useAddLineItemMutation,
+  useUpdateLineItemMutation,
+  useDeleteLineItemMutation
+} from "../../../features/invoices/invoice-slice";
+import type { Organization } from "../../../features/organizations/organization-slice";
 
+interface LineItem {
+  id: number;
+  UID?: string; // backend line item UID
+  Description: string;
+  Quantity: number;
+  UnitPrice: number;
+  TaxRate: number;
+}
+
+interface ProductOption {
+  value: string;
+  label: string;
+  unitPrice: number;
+  taxRate: number;
+}
+interface OutletContext {
+  currentOrg: Organization | undefined;
+}
 
 const CreateInvoice = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lineItems, setLineItems] = useState([]);
+  const { currentOrg } = useOutletContext<OutletContext>();
+  const orgUID = currentOrg?.UID;
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [createInvoice, { isLoading }] = useCreateInvoiceMutation();
+  const [addLineItem] = useAddLineItemMutation();
+  const [updateLineItem] = useUpdateLineItemMutation();
+  const [deleteLineItem] = useDeleteLineItemMutation();
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  const handleSubmit = (e: { preventDefault: () => void; }) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Invoice submitted successfully! (Simulated)");
-    }, 2000);
-  };
+  const [invoiceUID, setInvoiceUID] = useState<string | null>(null);
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const [customerTIN, setCustomerTIN] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
 
-  
-  const mockCustomerData = [
-    { value: "cust-1", label: "MTN Nigeria" },
-    { value: "cust-2", label: "Dangote Group" },
-    { value: "cust-3", label: "Access Bank PLC" },
-  ];
-
-  const ProductData = [
+  const ProductData: ProductOption[] = [
     { value: "goods", label: "Goods", unitPrice: 20000, taxRate: 7.5 },
     { value: "tech", label: "Technology Service", unitPrice: 45000, taxRate: 7.5 },
     { value: "food", label: "Foodstuff", unitPrice: 10000, taxRate: 5.0 },
   ];
 
-
-  const handleAddFromProducts = (value) => {
+  const handleAddFromProducts = async (value: string) => {
     const selected = ProductData.find((p) => p.label === value);
     if (!selected) return;
-    const newItem = {
+    const newItem: LineItem = {
       id: Date.now(),
-      description: selected.label,
-      quantity: 1,
-      unitPrice: selected.unitPrice,
-      taxRate: selected.taxRate,
+      Description: selected.label,
+      Quantity: 1,
+      UnitPrice: selected.unitPrice,
+      TaxRate: selected.taxRate,
     };
-    setLineItems((prev) => [...prev, newItem]);
+
+    setLineItems(prev => [...prev, newItem]);
+
+    if (invoiceUID && orgUID) {
+      try {
+        const res = await addLineItem({
+          orgUID,
+          InvoiceUID: invoiceUID,
+          Description: newItem.Description,
+          Quantity: newItem.Quantity,
+          UnitPrice: newItem.UnitPrice,
+          TaxRate: newItem.TaxRate
+        }).unwrap();
+
+        // Save backend UID
+        setLineItems(prev => prev.map(item => item.id === newItem.id ? { ...item, UID: res.data?.UID } : item));
+        showToast("Line item added", "success");
+      } catch (err) {
+        showToast("Failed to add line item", "error");
+      }
+    }
   };
 
-
-  const updateItem = (id, field, value) => {
-    setLineItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: Number(value) || value } : item
+  const updateItem = async (id: number, field: keyof LineItem, value: string | number) => {
+    setLineItems(prev =>
+      prev.map(item =>
+        item.id === id ? { ...item, [field]: Number(value) || (value as any) } : item
       )
     );
+
+    const item = lineItems.find(item => item.id === id);
+    if (item?.UID && invoiceUID && orgUID) {
+      try {
+        await updateLineItem({
+          orgUID,
+          invoiceUID,
+          lineItemUID: item.UID,
+          [field]: Number(value)
+        }).unwrap();
+        showToast("Line item updated", "success");
+      } catch {
+        showToast("Failed to update line item", "error");
+      }
+    }
   };
 
- 
-  const handleRemoveItem = (id) =>
-    setLineItems((prev) => prev.filter((item) => item.id !== id));
+  const handleRemoveItem = async (id: number) => {
+    const item = lineItems.find(item => item.id === id);
+    if (item?.UID && invoiceUID && orgUID) {
+      try {
+        await deleteLineItem({ orgUID, invoiceUID, lineItemUID: item.UID }).unwrap();
+        showToast("Line item deleted", "success");
+      } catch {
+        showToast("Failed to delete line item", "error");
+        return;
+      }
+    }
+    setLineItems(prev => prev.filter(item => item.id !== id));
+  };
 
-
-  const subtotal = useMemo(
-    () => lineItems.reduce((acc, i) => acc + i.quantity * i.unitPrice, 0),
-    [lineItems]
-  );
-  const vat = useMemo(
-    () => lineItems.reduce((acc, i) => acc + (i.quantity * i.unitPrice * i.taxRate) / 100, 0),
-    [lineItems]
-  );
+  const subtotal = useMemo(() => lineItems.reduce((acc, i) => acc + i.Quantity * i.UnitPrice, 0), [lineItems]);
+  const vat = useMemo(() => lineItems.reduce((acc, i) => acc + (i.Quantity * i.UnitPrice * i.TaxRate) / 100, 0), [lineItems]);
   const total = subtotal + vat;
+
+  const handleSubmit = async (e: FormEvent, submitToFIRS = false) => {
+    e.preventDefault();
+
+    if (submitToFIRS) setIsSubmitting(true);
+    else setIsSavingDraft(true);
+
+    try {
+      if (!orgUID) throw new Error("No org selected");
+      if (lineItems.length === 0) throw new Error("Add at least one line item");
+
+      const payload = {
+        orgUID,
+        InvoiceDate: invoiceDate,
+        DueDate: dueDate,
+        BusinessTIN: customerTIN,
+        Notes: notes,
+        SubmitToFIRS: submitToFIRS,
+        LineItems: lineItems.map(({ Description, Quantity, UnitPrice, TaxRate }) => ({
+          Description,
+          Quantity,
+          UnitPrice,
+          TaxRate,
+        })),
+      };
+
+      const res = await createInvoice(payload).unwrap();
+      setInvoiceUID(res.data.UID);
+
+      showToast(submitToFIRS ? "Invoice submitted to FIRS" : "Draft saved", "success");
+
+      if (submitToFIRS) navigate("/invoices");
+
+    } catch (err) {
+      showToast("Failed to save invoice", "error");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+      setIsSavingDraft(false);
+    }
+  };
 
 
   const columns = [
     {
       title: "Description",
-      dataIndex: "description",
-      render: (text, record) => (
+      dataIndex: "Description",
+      render: (text: string, record: LineItem) => (
         <Input
           value={text}
-          onChange={(e) => updateItem(record.id, "description", e.target.value)}
+          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Description", e.target.value)}
           placeholder="Service or Product name"
         />
       ),
     },
     {
       title: "Qty",
-      dataIndex: "quantity",
-      align: "right",
-      render: (qty, record) => (
+      dataIndex: "Quantity",
+      align: "right" as const,
+      render: (qty: number, record: LineItem) => (
         <Input
           type="number"
           value={qty}
-          onChange={(e) => updateItem(record.id, "quantity", e.target.value)}
+          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Quantity", e.target.value)}
         />
       ),
     },
     {
       title: "Unit Price",
-      dataIndex: "unitPrice",
-      align: "right",
-      render: (price, record) => (
+      dataIndex: "UnitPrice",
+      align: "right" as const,
+      render: (price: number, record: LineItem) => (
         <Input
           type="number"
           value={price}
-          onChange={(e) => updateItem(record.id, "unitPrice", e.target.value)}
+          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "UnitPrice", e.target.value)}
         />
       ),
     },
     {
       title: "Tax %",
-      dataIndex: "taxRate",
-      align: "right",
-      render: (tax, record) => (
+      dataIndex: "TaxRate",
+      align: "right" as const,
+      render: (tax: number, record: LineItem) => (
         <Input
           type="number"
           value={tax}
-          onChange={(e) => updateItem(record.id, "taxRate", e.target.value)}
+          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "TaxRate", e.target.value)}
         />
       ),
     },
     {
-      title: "Subtotal",
-      align: "right",
-      render: (_, record) => (
-        <>₦{(record.quantity * record.unitPrice).toFixed(2)}</>
-      ),
-    },
-    {
-      title: "Tax",
-      align: "right",
-      render: (_, record) => (
-        <>₦{((record.quantity * record.unitPrice * record.taxRate) / 100).toFixed(2)}</>
-      ),
-    },
-    {
       title: "",
-      align: "center",
-      render: (_, record) => (
+      align: "center" as const,
+      render: (_: unknown, record: LineItem) => (
         <button
           onClick={() => handleRemoveItem(record.id)}
           className="text-red-500 cursor-pointer hover:text-red-700"
@@ -151,7 +239,7 @@ const CreateInvoice = () => {
     <div className="flex flex-col font-sans min-h-screen">
       <div className="flex-1 flex justify-center pb-4">
         <div className="w-full max-w-5xl space-y-6">
-          {/* --- Header --- */}
+          {/* Header */}
           <div className="items-center">
             <Link to={"/invoices"}>
               <p className="flex items-center gap-2 hover:text-[#00786F] font-semibold text-sm">
@@ -160,43 +248,28 @@ const CreateInvoice = () => {
               </p>
             </Link>
             <div className="mt-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Submit Invoice to FIRS
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Fill in the invoice details and submit for FIRS validation
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900">Submit Invoice to FIRS</h2>
+              <p className="mt-1 text-sm text-gray-500">Fill in the invoice details and submit for FIRS validation</p>
             </div>
           </div>
 
-          {/* --- Invoice Form --- */}
+          {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="space-y-12">
-              {/* --- Section 1: Invoice Details --- */}
-              <div className="space-y- bg-white rounded-xl border border-gray-200">
+              {/* Invoice Details */}
+              <div className="bg-white rounded-xl border border-gray-200">
                 <div className="flex justify-between items-baseline border-b border-gray-200 bg-[#F9FAFB] p-6">
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    Invoice Details
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-800">Invoice Details</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 p-6 lg:grid-cols-2 gap-6">
                   <Input
-                    label="Invoice Number *"
-                    id="invoiceNumber"
-                    placeholder="INV-1761487276025"
+                    label="Customer TIN *"
+                    id="customerTIN"
+                    placeholder="Enter customer TIN"
+                    value={customerTIN}
+                    onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCustomerTIN(e.target.value)}
                     required
-                    defaultValue="INV-1761487276025"
-                    readOnly
-                  />
-
-                  <Select
-                    label="Customer *"
-                    options={mockCustomerData.map((opt) => ({
-                      value: opt.label,
-                      label: opt.label,
-                    }))}
-                    placeholder="Select a customer"
                   />
 
                   <Input
@@ -205,7 +278,8 @@ const CreateInvoice = () => {
                     placeholder="mm/dd/yyyy"
                     type="date"
                     required
-                    defaultValue="2025-10-26"
+                    value={invoiceDate}
+                    onChange={(e: { target: { value: SetStateAction<string>; }; }) => setInvoiceDate(e.target.value)}
                   />
 
                   <Input
@@ -213,15 +287,17 @@ const CreateInvoice = () => {
                     id="dueDate"
                     placeholder="mm/dd/yyyy"
                     type="date"
+                    value={dueDate}
+                    onChange={(e: { target: { value: SetStateAction<string>; }; }) => setDueDate(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* --- Section 2: Line Items --- */}
+              {/* Line Items */}
               <div className="space-y-6 bg-white rounded-xl border border-gray-200">
-                <div className="flex justify-between flex-wrap space-y-4 md:space-y-0 items-baseline border-b border-gray-200 bg-[#F9FAFB] p-6">
+                <div className="flex justify-between items-baseline border-b border-gray-200 bg-[#F9FAFB] p-6">
                   <h3 className="text-xl font-semibold text-gray-800">Line Items</h3>
-                  <div className="flex flex-wrap space-y-2 md:space-y-0space-x-3">
+                  <div className="flex gap-3">
                     <Select
                       options={ProductData.map((opt) => ({
                         value: opt.label,
@@ -239,13 +315,14 @@ const CreateInvoice = () => {
                           ...prev,
                           {
                             id: Date.now(),
-                            description: "",
-                            quantity: 1,
-                            unitPrice: 0,
-                            taxRate: 7.5,
+                            Description: "",
+                            Quantity: 1,
+                            UnitPrice: 0,
+                            TaxRate: 7.5,
                           },
                         ])
                       }
+                      type="button"
                       variant="ghost"
                     >
                       Add Item
@@ -261,7 +338,6 @@ const CreateInvoice = () => {
                     bordered
                   />
 
-                  {/* Totals */}
                   <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
                     <div className="w-full max-w-xs space-y-2 text-sm">
                       <div className="flex justify-between font-medium text-gray-600">
@@ -281,7 +357,7 @@ const CreateInvoice = () => {
                 </div>
               </div>
 
-              {/* --- Section 3: Additional Information --- */}
+              {/* Additional Info */}
               <div className="bg-white rounded-xl border border-gray-200 space-y-4">
                 <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 bg-[#F9FAFB] p-6">
                   Additional Information
@@ -291,40 +367,49 @@ const CreateInvoice = () => {
                   id="notes"
                   placeholder="Add any additional notes or terms..."
                   className="px-6 pb-5"
+                  value={notes}
+                  onChange={(e: { target: { value: SetStateAction<string>; }; }) => setNotes(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* --- Footer --- */}
-            <div className="flex flex-wrap space-y-3 md:space-y-0 justify-between items-center mt-5 p-4 rounded-b-xl">
+            {/* Footer */}
+            <div className="flex flex-wrap justify-between items-center mt-5 p-4 rounded-b-xl">
               <Button
                 className="bg-white border border-gray-200 text-gray-700"
-                onClick={() => console.log("Cancel clicked")}
+                onClick={() => navigate("/invoices")}
                 type="button"
                 variant="ghost"
               >
                 <X className="w-4 h-4 mr-2" /> Cancel
               </Button>
-              <div className="flex flex-wrap space-y-2 md:space-y-0 space-x-3">
+              <div className="flex gap-3">
                 <Button
                   icon={<Send className="w-4 h-4" />}
                   className="bg-[#9333EA] hover:bg-purple-700"
                   type="button"
-                  loadingText="Submitting"
                   disabled={isSubmitting}
+                  loading={isSubmitting}
+                  loadingText="Submitting"
+                  onClick={(e) => handleSubmit(e, true)}
                 >
                   Submit to FIRS
                 </Button>
+
                 <Button
-                  type="submit"
+                  type="button"
                   icon={<FileText className="w-4 h-4" />}
                   variant="solid"
-                  disabled={isSubmitting}
+                  disabled={isSavingDraft}
+                  loading={isSavingDraft}
                   loadingText="Saving"
+                  onClick={(e) => handleSubmit(e, false)}
                 >
                   Save as Draft
                 </Button>
+
               </div>
+
             </div>
           </form>
         </div>
