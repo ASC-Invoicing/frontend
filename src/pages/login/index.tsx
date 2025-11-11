@@ -6,54 +6,91 @@ import { useToast } from "../../components/ui/toast/ToastProvider";
 import { useLoginMutation } from "../../features/auth/authSlice";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
+import { baseApi } from "../../features/api/baseApi";
 
 export default function LoginPage() {
     const { showToast } = useToast();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+    });
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [login, { isLoading }] = useLoginMutation();
 
+    // --- VALIDATION ---
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+        if (!formData.email.trim()) newErrors.email = "Email is required";
+        if (!formData.password.trim()) newErrors.password = "Password is required";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // --- CHANGE HANDLER ---
+    const handleChange = (field: string, value: string) => {
+        setFormData({ ...formData, [field]: value });
+        setErrors({ ...errors, [field]: "" }); // clear field-specific error
+    };
+
+    // --- SUBMIT HANDLER ---
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!email || !password) return showToast("Please enter email and password", "error");
+        if (!validateForm()) return;
 
         try {
-            const res = await login({ Email: email, Password: password }).unwrap();
+            const res = await login({ Email: formData.email, Password: formData.password }).unwrap();
 
             if (res.success) {
-                // If backend sets cookie, no need to extract token
                 const user = {
-                    Email: res.data?.Email || email,
+                    Email: res.data?.Email || formData.email,
                     FirstName: res.data?.FirstName || "User",
                     LastName: res.data?.LastName || "",
                 };
 
-                // Update Redux
-                dispatch(setCredentials({ user, token: "cookie-session" })); // fake token to mark auth
+                dispatch(setCredentials({ user, token: "cookie-session" }));
+
+                // Prefetch profile & orgs before redirect
+                const profilePromise = dispatch(
+                    // @ts-ignore
+                    baseApi.endpoints.getUserProfile.initiate()
+                ).unwrap();
+
+                const orgsPromise = dispatch(
+                    // @ts-ignore
+                    baseApi.endpoints.listOrganizations.initiate()
+                ).unwrap();
+
+                await Promise.allSettled([profilePromise, orgsPromise]);
 
                 showToast("Login successful!", "success");
-                navigate("/dashboard", { replace: true });
+
+                const orgs = await orgsPromise;
+                if (orgs?.data?.data?.length) {
+                    navigate(`/${orgs.data.data[0].Slug}/dashboard`, { replace: true });
+                } else {
+                    navigate("/dashboard", { replace: true });
+                }
             } else {
                 showToast(res.message || "Login failed", "error");
             }
         } catch (err: any) {
             const message =
-                err?.data?.message || err?.error || err?.message || "Login failed. Please try again.";
+                err?.data?.message ||
+                err?.error ||
+                err?.message ||
+                "Login failed. Please try again.";
             showToast(message, "error");
         }
     };
-
-
-
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
             <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 bg-white">
                 <div className="w-full max-w-md">
+                    {/* Logo */}
                     <div className="mb-8">
                         <div className="inline-flex items-center gap-2">
                             <div className="h-8 w-8 bg-[#00786F] rounded-md flex items-center justify-center">
@@ -63,6 +100,7 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    {/* Title */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
                         <p className="text-gray-600 mt-2">
@@ -71,25 +109,23 @@ export default function LoginPage() {
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
-                        <div className="space-y-2">
-                            <Input
-                                label="Email Address"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setEmail(e.target.value)}
-                                error={!email ? "Email is required" : ""}
-                            />
-                        </div>
+                        <Input
+                            label="Email Address"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={formData.email}
+                            onChange={(e: any) => handleChange("email", e.target.value)}
+                            error={errors.email}
+                        />
 
-                        <div className="space-y-2 relative">
+                        <div className="relative">
                             <Input
                                 label="Password"
                                 type={showPassword ? "text" : "password"}
                                 placeholder="Enter your password"
-                                value={password}
-                                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setPassword(e.target.value)}
-                                error={!password ? "Password is required" : ""}
+                                value={formData.password}
+                                onChange={(e: any) => handleChange("password", e.target.value)}
+                                error={errors.password}
                             />
                             <button
                                 type="button"
@@ -101,12 +137,21 @@ export default function LoginPage() {
                         </div>
 
                         <div className="text-right">
-                            <Link to="/forgot-password" className="text-sm text-[#00786F] hover:underline">
+                            <Link
+                                to="/forgot-password"
+                                className="text-sm text-[#00786F] hover:underline"
+                            >
                                 Forgot password?
                             </Link>
                         </div>
 
-                        <Button type="submit" variant="solid" fullWidth loading={isLoading} loadingText="Signing in">
+                        <Button
+                            type="submit"
+                            variant="solid"
+                            fullWidth
+                            loading={isLoading}
+                            loadingText="Signing in"
+                        >
                             Sign In
                         </Button>
 
@@ -148,7 +193,10 @@ export default function LoginPage() {
 
                         <p className="text-center text-sm text-gray-600">
                             Don&apos;t have an account?{" "}
-                            <Link to="/signup" className="text-[#00786F] hover:underline font-semibold">
+                            <Link
+                                to="/signup"
+                                className="text-[#00786F] hover:underline font-semibold"
+                            >
                                 Create Account
                             </Link>
                         </p>
@@ -167,21 +215,27 @@ export default function LoginPage() {
                             <div className="text-2xl">📄</div>
                             <div>
                                 <h3 className="font-semibold mb-1">Easy Invoice Management</h3>
-                                <p className="text-sm text-blue-100">Create and submit invoices to FIRS effortlessly</p>
+                                <p className="text-sm text-blue-100">
+                                    Create and submit invoices to FIRS effortlessly
+                                </p>
                             </div>
                         </div>
                         <div className="flex gap-4">
                             <div className="text-2xl">✅</div>
                             <div>
                                 <h3 className="font-semibold mb-1">Automatic Compliance Tracking</h3>
-                                <p className="text-sm text-blue-100">Monitor validation status in real-time</p>
+                                <p className="text-sm text-blue-100">
+                                    Monitor validation status in real-time
+                                </p>
                             </div>
                         </div>
                         <div className="flex gap-4">
                             <div className="text-2xl">🔒</div>
                             <div>
                                 <h3 className="font-semibold mb-1">Secure & Compliant</h3>
-                                <p className="text-sm text-blue-100">FIRS compliant with enterprise-level security</p>
+                                <p className="text-sm text-blue-100">
+                                    FIRS compliant with enterprise-level security
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -190,5 +244,3 @@ export default function LoginPage() {
         </div>
     );
 }
-
-

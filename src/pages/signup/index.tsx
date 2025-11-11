@@ -101,12 +101,6 @@ export default function SignUpPage() {
                                 <span className="font-semibold text-teal-900">{formData.email}</span>
                             </p>
                         </div>
-
-                        {/* <Link to="/login" className="block">
-                            <Button variant="solid" fullWidth>
-                                Go to Login
-                            </Button>
-                        </Link> */}
                     </div>
                 </div>
 

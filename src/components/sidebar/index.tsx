@@ -13,6 +13,8 @@ import {
     Building,
     Check,
     LogOut,
+    ChevronDown,
+    Activity,
 } from "lucide-react";
 import { Button, LoadingSpinner, Modal, } from "../ui";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,6 +24,9 @@ import { setActiveOrg } from "../../store/orgContextSlice";
 import type { RootState } from "../../store";
 import { Empty } from "antd";
 import { useToast } from "../ui/toast/ToastProvider";
+import { useLogoutUserMutation } from "../../features/auth/authSlice";
+import { baseApi } from "../../features/api/baseApi";
+
 
 const PRIMARY_TEAL = "#00786F";
 
@@ -31,19 +36,26 @@ const navItems = [
     { id: "customers", name: "Customers", icon: Users, path: "customers" },
     { id: "products", name: "Products", icon: ShoppingBag, path: "products" },
     { id: "reports", name: "Reports", icon: BarChart3, path: "reports" },
-    { id: "settings", name: "Settings", icon: Settings, path: "settings" },
 ];
 
 export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { showToast } = useToast(); // Using toast
-
+    const { showToast } = useToast();
+    const [logoutUser] = useLogoutUserMutation();
     const [isOpen, setIsOpen] = useState(false);
     const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+    // Fetch user data
     const { data: userData } = useGetUserProfileQuery();
+    const userProfile = userData?.data;
+    const fullName = userProfile ? `${userProfile.FirstName} ${userProfile.LastName}` : "User";
+    const email = userProfile?.Email || "email@example.com";
+    const userInitial = userProfile?.FirstName ? userProfile.FirstName[0].toUpperCase() : 'U';
+    const userRole = "Administrator";
+
     const { data: orgsData, isLoading: orgLoading } = useListOrganizationsQuery();
     const organizations = orgsData?.data || [];
 
@@ -76,19 +88,30 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
     };
 
     const confirmLogout = () => {
-        setShowLogoutModal(true);
+
+        performLogout();
+        setIsUserDropdownOpen(false);
     };
 
     const performLogout = () => {
-        setShowLogoutModal(false);
-        showToast("Logout successful", "success");
-
-        // Wait 2-3 seconds before logging out
-        setTimeout(() => {
-            dispatch(logout());
-            navigate("/login", { replace: true });
-        }, 2500);
+        setShowLogoutModal(true);
+        setIsUserDropdownOpen(false);
     };
+
+    const handleModalLinkClick = (path: string) => {
+        if (activeOrg.slug) {
+            navigate(`/${activeOrg.slug}/${path}`);
+        } else {
+
+            navigate(`/${path}`);
+        }
+        setIsUserDropdownOpen(false);
+    }
+
+    const handleProfileClick = () => {
+        setIsUserDropdownOpen(!isUserDropdownOpen);
+        setIsOrgDropdownOpen(false);
+    }
 
     return (
         <>
@@ -100,9 +123,14 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                 {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            {isOpen && (
+            {/* Backdrop for mobile and dropdowns */}
+            {(isOpen || isOrgDropdownOpen || isUserDropdownOpen) && (
                 <div
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                        setIsOpen(false);
+                        setIsOrgDropdownOpen(false);
+                        setIsUserDropdownOpen(false);
+                    }}
                     className="fixed inset-0 bg-black/30 z-20 lg:hidden"
                 />
             )}
@@ -156,7 +184,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                     </button>
 
                     {isOrgDropdownOpen && (
-                        <div className="absolute left-5 w-[300px] mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-10">
+                        <div className="absolute left-5 w-[300px] mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-30">
                             <div className="px-4 py-4 text-xs font-semibold text-gray-500">
                                 Switch Organization
                             </div>
@@ -226,15 +254,71 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                     ))}
                 </nav>
 
-                {/* Logout */}
-                <div className="px-5 py-4 border-t border-gray-200">
+                {/* User Profile and Dropdown */}
+                <div className="px-5 py-4 border-t border-gray-200 absolute bottom-0 w-64">
                     <button
-                        onClick={confirmLogout}
-                        className="flex items-center cursor-pointer w-full px-3 py-2.5 rounded-lg text-sm transition-colors text-gray-600 hover:bg-red-50 hover:text-red-600 font-medium"
+                        onClick={handleProfileClick}
+                        className="flex items-center w-full p-1.5 rounded-lg text-sm cursor-pointer hover:bg-gray-100 transition"
                     >
-                        <LogOut className="w-5 h-5 mr-3 shrink-0" />
-                        <span>Logout</span>
+                        <div className="flex items-center gap-3 w-full">
+                            {/* User Avatar Initial */}
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-50 text-[#00786F] font-semibold text-lg shrink-0">
+                                {userInitial}
+                            </div>
+                            <div className="flex-1 text-left min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 truncate">
+                                    {fullName}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                    {email}
+                                </p>
+                                <p className="text-xs text-gray-400 truncate">
+                                    {userRole}
+                                </p>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isUserDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                        </div>
                     </button>
+
+                    {isUserDropdownOpen && (
+
+                        <div className="absolute bottom-20 left-5 mb-2 w-[240px] bg-white border border-gray-200 rounded-lg shadow-xl z-30">
+                            {/* Profile Info in the dropdown */}
+                            <div className="px-4 py-3 border-b border-gray-100">
+                                <p className="text-sm font-medium text-gray-800 truncate">
+                                    {fullName}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                    {email}
+                                </p>
+                            </div>
+
+                            {/* Dropdown Options */}
+                            <div className="py-1">
+                                <div
+                                    onClick={() => handleModalLinkClick("audit-logs")}
+                                    className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-700"
+                                >
+                                    <Activity className="w-5 h-5 text-gray-500 shrink-0" />
+                                    <span>Audit Logs</span>
+                                </div>
+                                <div
+                                    onClick={() => handleModalLinkClick("settings")}
+                                    className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-700"
+                                >
+                                    <Settings className="w-5 h-5 text-gray-500 shrink-0" />
+                                    <span>Settings</span>
+                                </div>
+                                <div
+                                    onClick={performLogout}
+                                    className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-red-50 text-sm text-red-600 font-medium border-t border-gray-100 mt-1"
+                                >
+                                    <LogOut className="w-5 h-5 shrink-0" />
+                                    <span>Logout</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </aside>
 
@@ -244,21 +328,33 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                     open
                     title="Confirm Logout"
                     onCancel={() => setShowLogoutModal(false)}
-                    width={500}
+                    width={400}
                     footer={
                         <div className="flex justify-end gap-2">
                             <Button
-                                variant="ghost"
-                                onClick={() => setShowLogoutModal(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
                                 variant="destructive"
-                                onClick={performLogout}
+                                onClick={async () => {
+                                    try {
+                                        setShowLogoutModal(false);
+                                        await logoutUser().unwrap();
+                                        dispatch(logout());
+                                        dispatch(baseApi.util.resetApiState());
+                                        localStorage.clear();
+                                        sessionStorage.clear();
+                                        showToast("Logout successful", "success");
+                                        setTimeout(() => {
+                                            navigate("/login", { replace: true });
+                                        }, 800);
+                                    } catch (error) {
+                                        console.error("Logout failed:", error);
+                                        showToast("Logout failed. Try again.", "error");
+                                    }
+                                }}
                             >
                                 Logout
                             </Button>
+
+
                         </div>
                     }
                 >

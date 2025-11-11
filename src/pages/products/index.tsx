@@ -230,23 +230,30 @@ const ProductPage: React.FC = () => {
                 title="Products & Services"
                 description="Manage your product catalog"
                 actions={
-                    <div className="flex space-x-2">
-                        <Button
-                            icon={<Plus className="w-4 h-4" />}
-                            onClick={() => {
-                                setSelectedCategory(null);
-                                setEditModalOpen(false);
-                                setIsCategoryModalOpen(true);
-                            }}
-                            className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200"
-                        >
-                            Add Category
-                        </Button>
+<div className="flex flex-wrap gap-2">
+    <Button
+        // Keep original classes and add order-2 for mobile
+        className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200 order-2 md:order-none"
+        icon={<Plus className="w-4 h-4" />}
+        onClick={() => {
+            setSelectedCategory(null);
+            setEditModalOpen(false);
+            setIsCategoryModalOpen(true);
+        }}
+    >
+        Add Category
+    </Button>
 
-                        <Link to="create-product">
-                            <Button icon={<Plus className="w-4 h-4" />}>Add Product</Button>
-                        </Link>
-                    </div>
+    <Link to="create-product">
+        {/* Add order-1 for mobile, making it appear first */}
+        <Button 
+            icon={<Plus className="w-4 h-4" />} 
+            className="order-1 md:order-none" // Add order-1 for mobile
+        >
+            Add Product
+        </Button>
+    </Link>
+</div>
                 }
             />
 

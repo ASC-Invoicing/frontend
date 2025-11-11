@@ -11,7 +11,7 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   logo = "/logo.svg",
-  title = "Synctax.",
+  title = "SyncTax.",
   show = true,
 }) => {
   const [mounted, setMounted] = useState(false);
