@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import EmailVerificationPage from "./EmailVerificationPage";
+import { ResetPassword } from "./ResetPassword";
+import { ResetConfirmationPage } from "./ResetConfirmation";
 
-export default function EmailVerificationWrapper() {
+export default function ResetPasswordWrapper() {
   const [searchParams] = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -10,11 +11,10 @@ export default function EmailVerificationWrapper() {
   useEffect(() => {
     const t = searchParams.get("token");
     if (t) {
-      setToken(t); // store token in memory
-      navigate("/verify-email", { replace: true }); // remove from URL
+      setToken(t); 
+      navigate("/reset-password", { replace: true }); 
     }
   }, [searchParams, navigate]);
 
-  return token ? <EmailVerificationPage token={token} /> : null;
+  return token ? <ResetConfirmationPage token={token} /> : <ResetPassword />;
 }
-

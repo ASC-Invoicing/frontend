@@ -10,6 +10,7 @@ import {
 } from "../../features/organizations/organization-slice";
 import { useDispatch } from "react-redux";
 import { setActiveOrg } from "../../store/orgContextSlice";
+import { baseApi } from "../../features/api/baseApi";
 
 const CreateOrganization = () => {
     const { showToast } = useToast();
@@ -37,9 +38,9 @@ const CreateOrganization = () => {
         }
     };
 
+    
     const handleCreate = async () => {
         if (!verifiedData) return showToast("Please verify a TIN first", "error");
-
         try {
             const res = await createOrganization({
                 CompanyName: verifiedData.CompanyName,
@@ -49,16 +50,12 @@ const CreateOrganization = () => {
             if (res.success) {
                 dispatch(setActiveOrg({ slug: res.data.Slug, name: res.data.CompanyName }));
                 showToast("Organization created successfully!", "success");
+                await dispatch(
+                    // @ts-ignore
+                    baseApi.endpoints.listOrganizations.initiate(undefined, { forceRefetch: true })
+                ).unwrap();
 
-                setVerifiedData(null);
-                setTin("");
-
-                dispatch(setActiveOrg({ slug: res.data.Slug, name: res.data.CompanyName }));
-                showToast("Organization created successfully!", "success");
-                setVerifiedData(null);
-                setTin("");
                 navigate(`/${res.data.Slug}/dashboard`, { replace: true });
-
             } else {
                 showToast(res.message || "Failed to create organization", "error");
             }
@@ -66,6 +63,7 @@ const CreateOrganization = () => {
             showToast(err?.data?.message || "Creation failed", "error");
         }
     };
+
 
 
 

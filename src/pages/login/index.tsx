@@ -7,6 +7,7 @@ import { useLoginMutation } from "../../features/auth/authSlice";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
 import { baseApi } from "../../features/api/baseApi";
+import logo from "../../assets/images/syntax-logo.png"
 
 export default function LoginPage() {
     const { showToast } = useToast();
@@ -25,6 +26,8 @@ export default function LoginPage() {
         const newErrors: Record<string, string> = {};
         if (!formData.email.trim()) newErrors.email = "Email is required";
         if (!formData.password.trim()) newErrors.password = "Password is required";
+        else if (formData.password.length < 8)
+            newErrors.password = "Password must be at least 8 characters"
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -32,7 +35,7 @@ export default function LoginPage() {
     // --- CHANGE HANDLER ---
     const handleChange = (field: string, value: string) => {
         setFormData({ ...formData, [field]: value });
-        setErrors({ ...errors, [field]: "" }); // clear field-specific error
+        setErrors({ ...errors, [field]: "" }); 
     };
 
     // --- SUBMIT HANDLER ---
@@ -51,8 +54,6 @@ export default function LoginPage() {
                 };
 
                 dispatch(setCredentials({ user, token: "cookie-session" }));
-
-                // Prefetch profile & orgs before redirect
                 const profilePromise = dispatch(
                     // @ts-ignore
                     baseApi.endpoints.getUserProfile.initiate()
@@ -64,7 +65,6 @@ export default function LoginPage() {
                 ).unwrap();
 
                 await Promise.allSettled([profilePromise, orgsPromise]);
-
                 showToast("Login successful!", "success");
 
                 const orgs = await orgsPromise;
@@ -93,10 +93,7 @@ export default function LoginPage() {
                     {/* Logo */}
                     <div className="mb-8">
                         <div className="inline-flex items-center gap-2">
-                            <div className="h-8 w-8 bg-[#00786F] rounded-md flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">{`{}`}</span>
-                            </div>
-                            <span className="text-xl font-bold text-gray-900">synctax</span>
+                            <img src={logo} className="h-11 md:h-12" alt="SyncTax Logo" />
                         </div>
                     </div>
 
@@ -138,7 +135,7 @@ export default function LoginPage() {
 
                         <div className="text-right">
                             <Link
-                                to="/forgot-password"
+                                to="/reset-password"
                                 className="text-sm text-[#00786F] hover:underline"
                             >
                                 Forgot password?

@@ -16,12 +16,8 @@ export const OrgProtectedRoute = ({ children }: OrgProtectedRouteProps) => {
     );
 
     const { data, isLoading, isError } = useListOrganizationsQuery();
-
     if (!hydrated || isLoading) return <SplashScreen />;
-
     if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-    // Check if the API errored
     if (isError) return <Navigate to="/onboarding" replace />;
 
     const organizations = data?.data ?? [];

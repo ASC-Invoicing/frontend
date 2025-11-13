@@ -19,6 +19,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { PublicRoute } from "./PublicRoute";
 import { useAuthInit } from "../hooks/useAuthInit";
 import { OrgProtectedRoute } from "./OrgProtectedRoute";
+import ResetPasswordWrapper from "../pages/reset-password";
 
 export const AppRouter = () => {
   useAuthInit();
@@ -52,6 +53,15 @@ export const AppRouter = () => {
           element={
             <PublicRoute>
               <EmailVerificationPage />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPasswordWrapper />
             </PublicRoute>
           }
         />

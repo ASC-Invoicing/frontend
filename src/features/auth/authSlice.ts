@@ -85,6 +85,29 @@ export const authApi = baseApi.injectEndpoints({
                 method: "POST",
             }),
         }),
+
+        forgotPassword: builder.mutation<
+            { data: { message: string }; message: string; success: boolean },
+            { Email: string }
+        >({
+            query: (body) => ({
+                url: "/auth/forgot-password",
+                method: "POST",
+                body,
+            }),
+        }),
+
+        resetPassword: builder.mutation<
+            { data: { message: string }; message: string; success: boolean },
+            { token: string; NewPassword: string }
+        >({
+            query: ({ token, NewPassword }) => ({
+                url: `/auth/reset-password?token=${token}`,
+                method: "POST",
+                body: { NewPassword },
+            }),
+        }),
+
     }),
 });
 
@@ -94,6 +117,8 @@ export const {
     useLoginMutation,
     useGetUserProfileQuery,
     useLogoutUserMutation,
+    useForgotPasswordMutation,
+    useResetPasswordMutation,
 } = authApi;
 
 interface User {
