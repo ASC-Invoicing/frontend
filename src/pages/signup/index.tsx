@@ -7,6 +7,7 @@ import { Input } from "../../components/ui";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useSignupMutation } from "../../features/auth/authSlice";
 import { useToast } from "../../components/ui/toast/ToastProvider";
+import logo from "../../assets/images/syntax-logo.png"
 
 export default function SignUpPage() {
     const { showToast } = useToast()
@@ -128,12 +129,7 @@ export default function SignUpPage() {
                 <div className="w-full max-w-md">
                     {/* Logo */}
                     <div className="mb-8">
-                        <div className="inline-flex items-center gap-2">
-                            <div className="h-8 w-8 bg-[#00786F] rounded-md flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">{`{}`}</span>
-                            </div>
-                            <span className="text-xl font-bold text-gray-900">synctax</span>
-                        </div>
+                        <img src={logo} className="h-11 md:h-12" alt="SyncTax Logo" />
                     </div>
 
                     {/* Title */}

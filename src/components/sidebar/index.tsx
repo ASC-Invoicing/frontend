@@ -26,7 +26,7 @@ import { Empty } from "antd";
 import { useToast } from "../ui/toast/ToastProvider";
 import { useLogoutUserMutation } from "../../features/auth/authSlice";
 import { baseApi } from "../../features/api/baseApi";
-
+import logo from "../../assets/images/syntax-logo.png"
 
 const PRIMARY_TEAL = "#00786F";
 
@@ -141,16 +141,8 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
           lg:translate-x-0 lg:relative lg:flex lg:flex-col`}
             >
                 {/* Header */}
-                <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-md bg-teal-50">
-                        <FileText className="w-5 h-5" style={{ color: PRIMARY_TEAL }} />
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-semibold text-gray-800 leading-tight">
-                            ASC e-Invoice
-                        </h2>
-                        <p className="text-xs text-gray-500">FIRS Compliant</p>
-                    </div>
+                <div className="flex mx-4 py-4 border-b border-gray-200">
+                    <img src={logo} className="h-8 md:10" alt="SyncTax Logo" />
                 </div>
 
                 {/* Organization Switcher */}
