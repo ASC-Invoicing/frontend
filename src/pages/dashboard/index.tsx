@@ -147,7 +147,7 @@ const DashboardPage = () => {
       title: "Total Submitted",
       value: totalSubmissions,
       icon: LayoutList,
-      color: "text-blue-500 bg-blue-100",
+      color: "text-[#0B344B] bg-blue-100",
     },
     {
       title: "FIRS Validated",
@@ -174,7 +174,7 @@ const DashboardPage = () => {
     <div className="flex flex-col flex-grow font-sans">
       {/* Header */}
       <Header
-        icon={<LayoutDashboard className="w-6 h-6 text-[#00786F]" />}
+        icon={<LayoutDashboard className="w-6 h-6 text-[#00A859]" />}
         title="FIRS Compliance Dashboard"
         description="Track your invoice submissions and validation status"
         actions={

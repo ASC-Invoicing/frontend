@@ -26,7 +26,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       className={`fixed inset-0 flex flex-col items-center justify-center bg-[#faffff] z-50`}
     >
       <LoadingSpinner />
-      <div className="flex text-4xl font-semibold text-[#00786F] mb-6 overflow-hidden">
+      <div className="flex text-4xl font-semibold text-[#00A859] mb-6 overflow-hidden">
         {title.split("").map((char, index) => {
           const delay = index * 100; 
           return (

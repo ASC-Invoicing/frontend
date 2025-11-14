@@ -38,7 +38,7 @@ const CreateOrganization = () => {
         }
     };
 
-    
+
     const handleCreate = async () => {
         if (!verifiedData) return showToast("Please verify a TIN first", "error");
         try {
@@ -76,12 +76,12 @@ const CreateOrganization = () => {
                         {/* Header */}
                         <div className="bg-teal-50 p-6 mb-8 flex gap-4 items-center">
                             <Link to={"/dashboard"}>
-                                <ArrowLeft className="w-4 h-4 hover:text-[#00786F]" />
+                                <ArrowLeft className="w-4 h-4 hover:text-[#00A859]" />
                             </Link>
                             <div>
                                 <h2 className="text-lg font-semibold">Create Organization</h2>
                                 <p className="text-gray-500 text-sm">
-                                    We will use the TIN you provide to create your organization.
+                                    Enter your TIN to help us set up your organization in our system.
                                 </p>
                             </div>
                         </div>

@@ -9,7 +9,7 @@
 
 // export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 //   size = "2xl",
-//   color = "#00786F",
+//   color = "#00A859",
 //   className = "",
 // }) => {
 

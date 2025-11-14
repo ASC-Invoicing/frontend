@@ -42,7 +42,7 @@ const SettingsPage = () => {
     return (
         <>
             <Header
-                icon={<Settings className="w-6 h-6 text-[#00786F]" />}
+                icon={<Settings className="w-6 h-6 text-[#00A859]" />}
                 title="Company Settings"
                 description="Manage your company profile and FIRS integration"
             />

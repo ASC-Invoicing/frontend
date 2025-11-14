@@ -32,7 +32,7 @@ export default function Toast({
     ) : type === "error" ? (
       <XCircle className="w-6 h-6 text-red-500" />
     ) : (
-      <Info className="w-6 h-6 text-blue-500" />
+      <Info className="w-6 h-6 text-[#0B344B]" />
     );
 
   const containerClasses =

@@ -31,13 +31,13 @@ export const Button: React.FC<ButtonProps> = ({
     "gap-2 leading-none",
     {
       // variants
-      "bg-[#00786F] text-white hover:bg-[#005F5A] focus:ring-[#00786F]":
+      "bg-[#00A859] text-white hover:bg-[#068c4d] focus:ring-[#00A859]":
         variant === "solid",
-      "border border-[#00786F] text-[#00786F] hover:bg-[#00786F]/10 focus:ring-[#00786F]":
+      "border border-[#00A859] text-[#00A859] hover:bg-[#00A859]/10 focus:ring-[#00A859]":
         variant === "outline",
-      "text-[#00786F] hover:bg-[#00786F]/5 focus:ring-[#00786F]":
+      "text-[#00A859] hover:bg-[#00A859]/5 focus:ring-[#00A859]":
         variant === "ghost",
-      "bg-[#1E293B] text-white hover:bg-[#3F4C5F] focus:ring-[#00786F]":
+      "bg-[#1E293B] text-white hover:bg-[#3F4C5F] focus:ring-[#00A859]":
         variant === "dark",
       "bg-red-500 text-white hover:hover:bg-red-600 focus:ring-red-500":
         variant === "destructive",

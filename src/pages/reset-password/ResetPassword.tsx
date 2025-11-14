@@ -51,7 +51,7 @@ export function ResetPassword() {
                     <div className="w-full max-w-md text-center">
                         <div className="flex justify-center mb-6">
                             <div className="h-20 w-20 rounded-full bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center shadow-lg ring-8 ring-white">
-                                <Mail className="h-10 w-10 text-[#00786F]" />
+                                <Mail className="h-10 w-10 text-[#00A859]" />
                             </div>
                         </div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">Check Your Email</h1>

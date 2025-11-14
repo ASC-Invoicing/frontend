@@ -20,6 +20,8 @@ import { PublicRoute } from "./PublicRoute";
 import { useAuthInit } from "../hooks/useAuthInit";
 import { OrgProtectedRoute } from "./OrgProtectedRoute";
 import ResetPasswordWrapper from "../pages/reset-password";
+import AuditLogsPage from "../pages/audit-logs";
+import EditInvoice from "../pages/invoices/EditInvoice";
 
 export const AppRouter = () => {
   useAuthInit();
@@ -87,13 +89,15 @@ export const AppRouter = () => {
         >
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="invoices/:invoiceUID" element={<EditInvoice />} />
           <Route path="invoices/create-invoice" element={<CreateInvoice />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="customers/create-customer" element={<CreateCustomer />} />
           <Route path="products" element={<ProductPage />} />
           <Route path="products/create-product" element={<CreateProduct />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="reports" element={<ReportsPage />} />
+          {/* <Route path="reports" element={<ReportsPage />} /> */}
+          <Route path="audit-logs" element={<AuditLogsPage />} />
         </Route>
 
 
