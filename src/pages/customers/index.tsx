@@ -120,11 +120,11 @@ const CustomersPage: React.FC = () => {
             {/* Header */}
 
             <Header
-                icon={<User className="w-6 h-6 text-[#00786F]" />}
+                icon={<User className="w-6 h-6 text-[#00A859]" />}
                 title="Customers"
                 description="Manage your customer database"
                 actions={
-                   <Link to="create-customer">
+                    <Link to="create-customer">
                         <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
                             Add Customer
                         </Button>
@@ -135,11 +135,11 @@ const CustomersPage: React.FC = () => {
             {/* Search */}
             <div className=" py-3">
                 <div className="relative max-w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="z-50 absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
 
                     <Input
                         icon={<Search className="w-5 h-5" />}
-                        placeholder="Search customers by name, TIN, or email..."
+                        placeholder="       Search customers by name, TIN, or email..."
                         type="text"
                         name="search"
                         value={searchTerm}

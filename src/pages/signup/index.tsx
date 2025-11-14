@@ -85,7 +85,7 @@ export default function SignUpPage() {
                     <div className="w-full max-w-md text-center">
                         <div className="flex justify-center mb-6">
                             <div className="h-20 w-20 rounded-full bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center shadow-lg ring-8 ring-white">
-                                <CheckCircle className="h-10 w-10 text-[#00786F]" />
+                                <CheckCircle className="h-10 w-10 text-[#00A859]" />
                             </div>
                         </div>
 
@@ -266,7 +266,7 @@ export default function SignUpPage() {
 
                         <p className="text-sm text-gray-600 text-center mt-3">
                             Already have an account?{" "}
-                            <Link to="/login" className="text-[#00786F] font-medium hover:underline">
+                            <Link to="/login" className="text-[#00A859] font-medium hover:underline">
                                 Login
                             </Link>
                         </p>
@@ -275,7 +275,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Right Section */}
-            {/* <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#00786F] via-teal-500 to-teal-700 items-center justify-center p-12">
+            {/* <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#00A859] via-teal-500 to-teal-700 items-center justify-center p-12">
                 <div className="text-white max-w-md">
                     <h2 className="text-4xl font-bold mb-4">Simplify E-Invoicing</h2>
                     <p className="text-lg text-teal-100 mb-8">

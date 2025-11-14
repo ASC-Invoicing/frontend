@@ -32,7 +32,7 @@ const CreateCustomer = () => {
                 <div className="w-full max-w-5xl space-y-6">
                     <div className='items-center'>
                         <Link to={'/customers'}>
-                            <p className='flex items-center gap-2 hover:text-[#00786F] font-semibold text-sm'><ArrowLeft className="w-4 h-4 text-gray-800 hover:text-[#00786F] transition-colors" /> Back to Customers</p>
+                            <p className='flex items-center gap-2 hover:text-[#00A859] font-semibold text-sm'><ArrowLeft className="w-4 h-4 text-gray-800 hover:text-[#00A859] transition-colors" /> Back to Customers</p>
                         </Link>
                         <div className='mt-6'>
                             <h2 className="text-2xl font-bold text-gray-900">

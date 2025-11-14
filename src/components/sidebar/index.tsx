@@ -28,14 +28,14 @@ import { useLogoutUserMutation } from "../../features/auth/authSlice";
 import { baseApi } from "../../features/api/baseApi";
 import logo from "../../assets/images/syntax-logo.png"
 
-const PRIMARY_TEAL = "#00786F";
+const PRIMARY_TEAL = "#00A859";
 
 const navItems = [
     { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, path: "dashboard" },
     { id: "invoices", name: "Invoices", icon: FileText, path: "invoices" },
     { id: "customers", name: "Customers", icon: Users, path: "customers" },
     { id: "products", name: "Products", icon: ShoppingBag, path: "products" },
-    { id: "reports", name: "Reports", icon: BarChart3, path: "reports" },
+    // { id: "reports", name: "Reports", icon: BarChart3, path: "reports" },
 ];
 
 export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
@@ -153,7 +153,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                         className="w-full flex items-center justify-between capitalize p-3 py-2.5 border border-gray-300 rounded-lg text-sm cursor-pointer bg-white hover:bg-gray-50 transition"
                     >
                         <div className="flex items-center gap-2">
-                            <Building className="w-5 h-5 text-[#00786F]" />
+                            <Building className="w-5 h-5 text-[#00A859]" />
                             <span className="font-medium text-gray-800 truncate max-w-[150px] text-sm">
 
                                 {toTitleCase(activeOrg?.name || "Select Organization")}
@@ -197,7 +197,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                                         <div className="flex items-center gap-2">
                                             <Building
                                                 className={`w-5 h-5 ${activeOrg.slug === org.Slug
-                                                    ? "text-[#00786F]"
+                                                    ? "text-[#00A859]"
                                                     : "text-gray-400"
                                                     }`}
                                             />
@@ -205,7 +205,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
 
                                         </div>
                                         {activeOrg.slug === org.Slug && (
-                                            <Check className="w-4 h-4 text-[#00786F]" />
+                                            <Check className="w-4 h-4 text-[#00A859]" />
                                         )}
                                     </div>
                                 ))
@@ -216,7 +216,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                             )}
                             <div className="border-t border-gray-100">
                                 <Link to="/onboarding">
-                                    <div className="flex items-center gap-2 px-4 py-2.5 mt-2 cursor-pointer text-[#00786F] hover:bg-teal-50 text-sm font-medium">
+                                    <div className="flex items-center gap-2 px-4 py-2.5 mt-2 cursor-pointer text-[#00A859] hover:bg-teal-50 text-sm font-medium">
                                         <Plus className="w-5 h-5" />
                                         <span>Create New Organization</span>
                                     </div>
@@ -235,7 +235,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                             onClick={() => setIsOpen(false)}
                             className={({ isActive }) =>
                                 `flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive
-                                    ? "bg-teal-50 text-[#00786F] font-semibold"
+                                    ? "bg-[#ebfaf6] text-[#00A859] font-semibold"
                                     : "text-gray-600 hover:bg-gray-100"
                                 }`
                             }
@@ -254,7 +254,7 @@ export const Sidebar = ({ currentOrg }: { currentOrg?: any }) => {
                     >
                         <div className="flex items-center gap-3 w-full">
                             {/* User Avatar Initial */}
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-50 text-[#00786F] font-semibold text-lg shrink-0">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-50 text-[#00A859] font-semibold text-lg shrink-0">
                                 {userInitial}
                             </div>
                             <div className="flex-1 text-left min-w-0">

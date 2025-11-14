@@ -63,7 +63,7 @@ const CategoryTabs: React.FC<{
                 >
                     <button className="cursor-pointer">{cat.Name}</button>
                     <button
-                        className="cursor-pointer text-gray-400 hover:text-blue-500"
+                        className="cursor-pointer text-gray-400 hover:text-[#0B344B]"
                         onClick={() => onEdit(cat)}
                     >
                         <Pencil className="w-3.5 h-3.5" />
@@ -107,7 +107,7 @@ const ProductCard: React.FC<{
         <div className="pt-4 border-t border-gray-100 space-y-2">
             <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500 font-medium">Unit Price</span>
-                <span className="text-lg font-bold text-[#2563EB]">₦{product.UnitPrice.toFixed(2)}</span>
+                <span className="text-lg font-bold text-[#00A859]">₦{product.UnitPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500 font-medium">Tax Rate</span>
@@ -226,44 +226,41 @@ const ProductPage: React.FC = () => {
         <div className="flex flex-col min-h-screen font-sans">
             {/* Header */}
             <Header
-                icon={<ShoppingBag className="w-6 h-6 text-[#00786F]" />}
+                icon={<ShoppingBag className="w-6 h-6 text-[#00A859]" />}
                 title="Products & Services"
                 description="Manage your product catalog"
                 actions={
-<div className="flex flex-wrap gap-2">
-    <Button
-        // Keep original classes and add order-2 for mobile
-        className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200 order-2 md:order-none"
-        icon={<Plus className="w-4 h-4" />}
-        onClick={() => {
-            setSelectedCategory(null);
-            setEditModalOpen(false);
-            setIsCategoryModalOpen(true);
-        }}
-    >
-        Add Category
-    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            className="bg-[#ffffff] !text-[#000000] shadow-xs hover:bg-gray-100 border border-gray-200 order-2 md:order-none"
+                            icon={<Plus className="w-4 h-4" />}
+                            onClick={() => {
+                                setSelectedCategory(null);
+                                setEditModalOpen(false);
+                                setIsCategoryModalOpen(true);
+                            }}
+                        >
+                            Add Category
+                        </Button>
 
-    <Link to="create-product">
-        {/* Add order-1 for mobile, making it appear first */}
-        <Button 
-            icon={<Plus className="w-4 h-4" />} 
-            className="order-1 md:order-none" // Add order-1 for mobile
-        >
-            Add Product
-        </Button>
-    </Link>
-</div>
+                        <Link to="create-product">
+                            <Button
+                                icon={<Plus className="w-4 h-4" />}
+                                className="order-1 md:order-none"
+                            >
+                                Add Product
+                            </Button>
+                        </Link>
+                    </div>
                 }
             />
 
             {/* Search */}
             <div className="py-3">
                 <div className="relative max-w-full">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="z-50 absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                     <Input
-                        icon={<Search className="w-5 h-5" />}
-                        placeholder="Search products"
+                        placeholder="       Search products..."
                         type="text"
                         value={searchTerm}
                         onChange={handleSearchChange}

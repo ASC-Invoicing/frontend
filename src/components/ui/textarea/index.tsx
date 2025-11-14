@@ -13,7 +13,7 @@ export const CustomTextArea = ({ label, error, className, ...props }: Props) => 
     {label && <label className="text-sm font-medium">{label}</label>}
     <TextArea
       {...props}
-      className={clsx("rounded-md !py-5 border-gray-300 focus:border-[#00786F]")}
+      className={clsx("rounded-md !py-5 border-gray-300 focus:border-[#00A859]")}
     />
     {error && <span className="text-xs text-red-500">{error}</span>}
   </div>

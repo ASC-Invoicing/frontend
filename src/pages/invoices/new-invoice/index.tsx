@@ -11,7 +11,7 @@ import {
   useUpdateLineItemMutation,
   useDeleteLineItemMutation,
 } from "../../../features/invoices/invoice-slice";
-import { useListProductsQuery } from "../../../features/products/product-slice"; // ✅ import this
+import { useListProductsQuery } from "../../../features/products/product-slice";
 import type { Organization } from "../../../features/organizations/organization-slice";
 
 interface LineItem {
@@ -40,27 +40,25 @@ const CreateInvoice = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // ✅ Fetch products for the current organization
   const { data: productsData, isLoading: isProductsLoading } = useListProductsQuery(
     { orgUID: orgUID! },
     { skip: !orgUID }
   );
 
-  const [createInvoice, { isLoading }] = useCreateInvoiceMutation();
+  const [createInvoice] = useCreateInvoiceMutation();
   const [addLineItem] = useAddLineItemMutation();
   const [updateLineItem] = useUpdateLineItemMutation();
   const [deleteLineItem] = useDeleteLineItemMutation();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [invoiceUID, setInvoiceUID] = useState<string | null>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [customerTIN, setCustomerTIN] = useState("");
   const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  // ✅ Transform products into dropdown options
   const ProductOptions: ProductOption[] =
     productsData?.data?.map((p) => ({
       value: p.UID!,
@@ -83,44 +81,44 @@ const CreateInvoice = () => {
 
     setLineItems((prev) => [...prev, newItem]);
 
-    if (invoiceUID && orgUID) {
-      try {
-        const res = await addLineItem({
-          orgUID,
-          InvoiceUID: invoiceUID,
-          Description: newItem.Description,
-          Quantity: newItem.Quantity,
-          UnitPrice: newItem.UnitPrice,
-          TaxRate: newItem.TaxRate,
-        }).unwrap();
+    if (!invoiceUID) return; // wait for first draft to exist
 
-        setLineItems((prev) =>
-          prev.map((item) =>
-            item.id === newItem.id ? { ...item, UID: res.data?.UID } : item
-          )
-        );
-        showToast("Line item added", "success");
-      } catch (err) {
-        showToast("Failed to add line item", "error");
-      }
+    try {
+      const res = await addLineItem({
+        orgUID: orgUID!,
+        InvoiceUID: invoiceUID,
+        Description: newItem.Description,
+        Quantity: newItem.Quantity,
+        UnitPrice: newItem.UnitPrice,
+        TaxRate: newItem.TaxRate,
+      }).unwrap();
+
+      setLineItems((prev) =>
+        prev.map((item) =>
+          item.id === newItem.id ? { ...item, UID: res.data?.UID } : item
+        )
+      );
+      showToast("Line item added", "success");
+    } catch {
+      showToast("Failed to add line item", "error");
     }
   };
 
   const updateItem = async (id: number, field: keyof LineItem, value: string | number) => {
-    setLineItems(prev =>
-      prev.map(item =>
+    setLineItems((prev) =>
+      prev.map((item) =>
         item.id === id ? { ...item, [field]: Number(value) || (value as any) } : item
       )
     );
 
-    const item = lineItems.find(item => item.id === id);
+    const item = lineItems.find((i) => i.id === id);
     if (item?.UID && invoiceUID && orgUID) {
       try {
         await updateLineItem({
           orgUID,
           invoiceUID,
           lineItemUID: item.UID,
-          [field]: Number(value)
+          [field]: Number(value),
         }).unwrap();
         showToast("Line item updated", "success");
       } catch {
@@ -130,7 +128,7 @@ const CreateInvoice = () => {
   };
 
   const handleRemoveItem = async (id: number) => {
-    const item = lineItems.find(item => item.id === id);
+    const item = lineItems.find((i) => i.id === id);
     if (item?.UID && invoiceUID && orgUID) {
       try {
         await deleteLineItem({ orgUID, invoiceUID, lineItemUID: item.UID }).unwrap();
@@ -140,7 +138,7 @@ const CreateInvoice = () => {
         return;
       }
     }
-    setLineItems(prev => prev.filter(item => item.id !== id));
+    setLineItems((prev) => prev.filter((i) => i.id !== id));
   };
 
   const subtotal = useMemo(() => lineItems.reduce((acc, i) => acc + i.Quantity * i.UnitPrice, 0), [lineItems]);
@@ -149,12 +147,12 @@ const CreateInvoice = () => {
 
   const handleSubmit = async (e: FormEvent, submitToFIRS = false) => {
     e.preventDefault();
-
     if (submitToFIRS) setIsSubmitting(true);
     else setIsSavingDraft(true);
 
     try {
       if (!orgUID) throw new Error("No org selected");
+      if (!customerTIN) throw new Error("Customer TIN required");
       if (lineItems.length === 0) throw new Error("Add at least one line item");
 
       const payload = {
@@ -172,13 +170,16 @@ const CreateInvoice = () => {
         })),
       };
 
-      const res = await createInvoice(payload).unwrap();
-      setInvoiceUID(res.data.UID);
-
-      showToast(submitToFIRS ? "Invoice submitted to FIRS" : "Draft saved", "success");
+      let res;
+      if (!invoiceUID || submitToFIRS) {
+        res = await createInvoice(payload).unwrap();
+        setInvoiceUID(res.data.UID);
+        showToast(submitToFIRS ? "Invoice submitted to FIRS" : "Draft saved", "success");
+      } else {
+        showToast("Draft updated", "success");
+      }
 
       if (submitToFIRS) navigate("/invoices");
-
     } catch (err) {
       showToast("Failed to save invoice", "error");
       console.error(err);
@@ -188,67 +189,24 @@ const CreateInvoice = () => {
     }
   };
 
-
   const columns = [
-    {
-      title: "Description",
-      dataIndex: "Description",
-      render: (text: string, record: LineItem) => (
-        <Input
-          value={text}
-          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Description", e.target.value)}
-          placeholder="Service or Product name"
-        />
-      ),
-    },
-    {
-      title: "Qty",
-      dataIndex: "Quantity",
-      align: "right" as const,
-      render: (qty: number, record: LineItem) => (
-        <Input
-          type="number"
-          value={qty}
-          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Quantity", e.target.value)}
-        />
-      ),
-    },
-    {
-      title: "Unit Price",
-      dataIndex: "UnitPrice",
-      align: "right" as const,
-      render: (price: number, record: LineItem) => (
-        <Input
-          type="number"
-          value={price}
-          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "UnitPrice", e.target.value)}
-        />
-      ),
-    },
-    {
-      title: "Tax %",
-      dataIndex: "TaxRate",
-      align: "right" as const,
-      render: (tax: number, record: LineItem) => (
-        <Input
-          type="number"
-          value={tax}
-          onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "TaxRate", e.target.value)}
-        />
-      ),
-    },
-    {
-      title: "",
-      align: "center" as const,
-      render: (_: unknown, record: LineItem) => (
-        <button
-          onClick={() => handleRemoveItem(record.id)}
-          className="text-red-500 cursor-pointer hover:text-red-700"
-        >
+    { title: "Description", dataIndex: "Description", render: (text: string, record: LineItem) => (
+        <Input value={text} placeholder="Service or Product name" onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Description", e.target.value)} />
+    ) },
+    { title: "Qty", dataIndex: "Quantity", align: "right" as const, render: (qty: number, record: LineItem) => (
+        <Input type="number" value={qty} onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "Quantity", e.target.value)} />
+    ) },
+    { title: "Unit Price", dataIndex: "UnitPrice", align: "right" as const, render: (price: number, record: LineItem) => (
+        <Input type="number" value={price} onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "UnitPrice", e.target.value)} />
+    ) },
+    { title: "Tax %", dataIndex: "TaxRate", align: "right" as const, render: (tax: number, record: LineItem) => (
+        <Input type="number" value={tax} onChange={(e: { target: { value: string | number; }; }) => updateItem(record.id, "TaxRate", e.target.value)} />
+    ) },
+    { title: "", align: "center" as const, render: (_: unknown, record: LineItem) => (
+        <button onClick={() => handleRemoveItem(record.id)} className="text-red-500 cursor-pointer hover:text-red-700">
           <Trash2 className="w-4 h-4" />
         </button>
-      ),
-    },
+    ) },
   ];
 
   return (
@@ -258,8 +216,8 @@ const CreateInvoice = () => {
           {/* Header */}
           <div className="items-center">
             <Link to={"/invoices"}>
-              <p className="flex items-center gap-2 hover:text-[#00786F] font-semibold text-sm">
-                <ArrowLeft className="w-4 h-4 text-gray-800 hover:text-[#00786F] transition-colors" />
+              <p className="flex items-center gap-2 hover:text-[#00A859] font-semibold text-sm">
+                <ArrowLeft className="w-4 h-4 text-gray-800 hover:text-[#00A859] transition-colors" />
                 Back to Invoices
               </p>
             </Link>
@@ -369,7 +327,7 @@ const CreateInvoice = () => {
                         <span>Tax (VAT):</span>
                         <span>₦{vat.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-lg font-bold text-blue-600 pt-2 border-t border-gray-300">
+                      <div className="flex justify-between text-lg font-bold text-[#00A859] pt-2 border-t border-gray-300">
                         <span>Total:</span>
                         <span>₦{total.toFixed(2)}</span>
                       </div>

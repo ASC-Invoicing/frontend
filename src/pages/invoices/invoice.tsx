@@ -104,7 +104,7 @@ const InvoicesPage: React.FC = () => {
 
     const columns = [
         {
-            title: "Invoice #",
+            title: "INVOICE IRN",
             dataIndex: "IRN",
             key: "irn",
             render: (text: string) => <span className="font-semibold text-gray-900">{text}</span>,
@@ -138,8 +138,8 @@ const InvoicesPage: React.FC = () => {
             title: "Actions",
             key: "actions",
             render: (record: any) => (
-                <Link to={`/invoices/${record.UID}`}>
-                    <button className="text-[#2563EB] cursor-pointer hover:text-[#00786F] p-1 rounded-md transition-colors">
+                <Link to={`${record.UID}`}>
+                    <button className="text-[#2563EB] cursor-pointer hover:text-[#00A859] p-1 rounded-md transition-colors">
                         <Pencil className="w-4 h-4" />
                     </button>
                 </Link>
@@ -150,7 +150,7 @@ const InvoicesPage: React.FC = () => {
     return (
         <div className="flex flex-col font-sans min-h-screen">
             <Header
-                icon={<FileText className="w-6 h-6 text-[#00786F]" />}
+                icon={<FileText className="w-6 h-6 text-[#00A859]" />}
                 title="Invoices"
                 description="Manage and track all your invoices"
                 actions={[
@@ -176,9 +176,9 @@ const InvoicesPage: React.FC = () => {
             <div className="py-3 ">
                 <div className="flex flex-col sm:flex-row justify-between gap-6">
                     <div className="relative flex-grow max-w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="z-50 absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                         <Input
-                            placeholder="Search invoices by number or customer..."
+                            placeholder="       Search invoices by number or customer..."
                             type="text"
                             name="search"
                             value={searchTerm}

@@ -5,7 +5,7 @@ export default {
         extend: {
             colors: {
                 firs: {
-                    blue: "#00786F",
+                    blue: "#00A859",
                     dark: "#005F5A",
                 },
             },

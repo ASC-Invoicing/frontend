@@ -136,7 +136,7 @@ export default function LoginPage() {
                         <div className="text-right">
                             <Link
                                 to="/reset-password"
-                                className="text-sm text-[#00786F] hover:underline"
+                                className="text-sm text-[#00A859] hover:underline"
                             >
                                 Forgot password?
                             </Link>
@@ -192,7 +192,7 @@ export default function LoginPage() {
                             Don&apos;t have an account?{" "}
                             <Link
                                 to="/signup"
-                                className="text-[#00786F] hover:underline font-semibold"
+                                className="text-[#00A859] hover:underline font-semibold"
                             >
                                 Create Account
                             </Link>

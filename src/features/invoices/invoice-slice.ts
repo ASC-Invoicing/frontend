@@ -180,6 +180,30 @@ export const invoiceApi = baseApi.injectEndpoints({
                 { type: "Invoices", id: arg.invoiceUID },
             ],
         }),
+
+        updateInvoice: builder.mutation<
+            InvoiceResponse,
+            {
+                orgUID: string;
+                invoiceUID: string;
+                InvoiceDate?: string;
+                DueDate?: string;
+                BusinessTIN?: string;
+                Notes?: string;
+                SubmitToFIRS?: boolean;
+            }
+        >({
+            query: ({ orgUID, invoiceUID, ...body }) => ({
+                url: `/organizations/${orgUID}/invoices/${invoiceUID}`,
+                method: "PUT",
+                body,
+            }),
+            invalidatesTags: (result, error, arg) => [
+                { type: "Invoices", id: arg.invoiceUID },
+                { type: "Invoices", id: "LIST" },
+            ],
+        })
+
     }),
 });
 
@@ -190,4 +214,5 @@ export const {
     useAddLineItemMutation,
     useUpdateLineItemMutation,
     useDeleteLineItemMutation,
+    useUpdateInvoiceMutation,
 } = invoiceApi;
