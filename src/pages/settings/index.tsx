@@ -1,138 +1,281 @@
-import { useState } from "react";
-import { Button, Input, Select } from "../../components/ui";
-import { FileText, Save, Settings } from "lucide-react";
-import TextArea from "antd/es/input/TextArea";
-import { Form } from "antd";
+import React, { useEffect, useState } from "react";
+import { Lock, User, LogOut, Settings, Save } from "lucide-react";
+import { Button, Input } from "../../components/ui";
 import { Header } from "../../components/header";
-import { CustomTextArea } from "../../components/ui/textarea";
+import { useToast } from "../../components/ui/toast/ToastProvider";
+
+import {
+    useGetUserProfileQuery,
+    useUpdateUserProfileMutation,
+    useChangePasswordMutation,
+} from "../../features/user/user-slice";
+import { useLogoutUserMutation } from "../../features/auth/authSlice";
+import { baseApi } from "../../features/api/baseApi";
+import { useNavigate } from "react-router-dom";
 
 
-const MOCK_COMPANY_SETTINGS = {
-    companyName: '',
-    tin: '',
-    email: '',
-    phone: '',
-    industry: '',
-    address: '',
-    firsApiKey: '',
-};
-const SettingsPage = () => {
-    const [settings, setSettings] = useState(MOCK_COMPANY_SETTINGS);
-    const [, setLoading] = useState(false);
+import { useDispatch } from "react-redux";
+import { clearUser, setUser } from "../../store/userSlice";
 
-    const handleChange = (e: { target: { name: any; value: any; }; }) => {
-        const { name, value } = e.target;
-        setSettings(prev => ({ ...prev, [name]: value }));
-    };
+const SettingsPage: React.FC = () => {
+    const navigate = useNavigate();
+    const [logoutUser] = useLogoutUserMutation();
 
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    const dispatch = useDispatch();
+    const { showToast } = useToast();
+
+    // --- GET PROFILE ---
+    const { data, isLoading: isProfileLoading } = useGetUserProfileQuery();
+
+    // --- MUTATIONS ---
+    const [updateProfile, { isLoading: isUpdatingProfile }] =
+        useUpdateUserProfileMutation();
+
+    const [changePassword, { isLoading: isChangingPassword }] =
+        useChangePasswordMutation();
+
+    // Local form state
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+
+    // Password state
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+    // Populate form after fetching user
+    useEffect(() => {
+        if (data?.data) {
+            setFirstName(data.data.FirstName);
+            setLastName(data.data.LastName);
+        }
+    }, [data]);
+
+    // Save updated profile
+    const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Settings Saved:', settings);
-        setLoading(false);
+
+        try {
+            const res = await updateProfile({
+                FirstName: firstName,
+                LastName: lastName,
+            }).unwrap();
+
+            dispatch(setUser(res.data));
+
+            showToast("Profile updated successfully.", "success");
+        } catch (err: any) {
+            showToast(err?.data?.message || "Failed to update profile.", "error");
+        }
     };
 
-    const industryOptions = [
-        { value: 'retail', label: 'Retail Store' },
-        { value: 'tech', label: 'Technology/Software' },
-        { value: 'service', label: 'Professional Services' },
-    ];
+    // Change password
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (newPassword !== confirmNewPassword) {
+            showToast("Passwords do not match.", "error");
+            return;
+        }
+
+        try {
+            await changePassword({
+                OldPassword: currentPassword,
+                NewPassword: newPassword,
+            }).unwrap();
+
+            showToast("Password updated successfully.", "success");
+
+            // reset fields
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmNewPassword("");
+        } catch (err: any) {
+            showToast(err?.data?.message || "Failed to update password.", "error");
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logoutUser().unwrap();
+            dispatch(clearUser());
+            dispatch(baseApi.util.resetApiState());
+            localStorage.clear();
+            sessionStorage.clear();
+            showToast("Logout successful", "success");
+
+            setTimeout(() => {
+                navigate("/login", { replace: true });
+            }, 600);
+
+        } catch (err) {
+            console.error("Logout failed:", err);
+            showToast("Logout failed. Please try again.", "error");
+        }
+    };
+
 
     return (
-        <>
+        <div className="flex flex-col font-sans min-h-screen">
             <Header
                 icon={<Settings className="w-6 h-6 text-[#00A859]" />}
-                title="Company Settings"
-                description="Manage your company profile and FIRS integration"
+                title="Account Settings"
+                description="Manage your personal profile and security settings"
             />
 
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Company Information Card */}
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-gray-600" />
-                        Company Information
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input
-                            label="Company Name"
-                            name="companyName"
-                            value={settings.companyName}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Tax Identification Number (TIN)"
-                            name="tin"
-                            value={settings.tin}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Email"
-                            name="email"
-                            type="email"
-                            value={settings.email}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Phone"
-                            name="phone"
-                            value={settings.phone}
-                            onChange={handleChange}
-                        />
-                        <Select
-                            label="Industry"
-                            value={settings.industry}
-                            onChange={(e: { target: { value: any; }; }) => setSettings(prev => ({ ...prev, industry: e.target.value }))}
-                            options={industryOptions.map(opt => ({ value: opt.label, label: opt.label }))}
-                        />
+            {/* Profile */}
+            <div className="space-y-12 mb-6">
+                <div className="pb-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex justify-between items-baseline border-b border-gray-200 bg-[#F9FAFB] p-6 rounded-t-xl">
+                        <div className="flex items-center gap-3">
+                            <User className="w-6 h-6 text-gray-600" />
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-800">
+                                    Profile Information
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Update your personal information
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mt-6">
+                    <div className="p-6">
+                        <form className="space-y-6" onSubmit={handleSaveProfile}>
+                            <div className="grid grid-cols-1 gap-6">
+                                <Input
+                                    label="First Name *"
+                                    value={firstName}
+                                    onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setFirstName(e.target.value)}
+                                    required
+                                />
 
-                        <CustomTextArea
-                            value={settings.address}
-                            onChange={handleChange}
-                            label="Address"
+                                <Input
+                                    label="Last Name *"
+                                    value={lastName}
+                                    onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setLastName(e.target.value)}
+                                    required
+                                />
+
+                                <Input
+                                    label="Email Address"
+                                    value={data?.data.Email || ""}
+                                    disabled
+                                />
+
+                                <p className="text-xs text-gray-500 -mt-4">
+                                    Email cannot be changed.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end pt-4 border-t border-gray-100">
+                                <Button
+                                    type="submit"
+                                    variant="solid"
+                                    disabled={isUpdatingProfile}
+                                    loading={isUpdatingProfile}
+                                    loadingText="Saving"
+                                    icon={<Save size={18} />}
+                                >
+                                    Save Profile
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {/* Password Section */}
+            <div className="space-y-12 mb-6">
+                <div className="pb-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-3 border-b border-gray-200 bg-[#F9FAFB] p-6 rounded-t-xl">
+                        <Lock className="w-6 h-6 text-gray-600" />
+                        <div>
+                            <h3 className="text-xl font-semibold text-gray-800">
+                                Change Password
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Update your password to keep your account secure
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="p-6">
+                        <form className="space-y-6" onSubmit={handleChangePassword}>
+                            <Input
+                                label="Current Password *"
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setCurrentPassword(e.target.value)}
+                                required
+                            />
+
+                            <Input
+                                label="New Password *"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setNewPassword(e.target.value)}
+                                required
+                            />
+
+                            <Input
+                                label="Confirm New Password *"
+                                type="password"
+                                value={confirmNewPassword}
+                                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setConfirmNewPassword(e.target.value)}
+                                required
+                            />
+
+                            <div className="flex justify-end pt-4 border-t border-gray-100">
+                                <Button
+                                    type="submit"
+                                    variant="solid"
+                                    disabled={isChangingPassword}
+                                    loading={isChangingPassword}
+                                    loadingText="Updating"
+                                    icon={<Lock size={18} />}
+                                >
+                                    Change Password
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {/* LOGOUT */}
+            <div className="space-y-12">
+                <div className="pb-6 rounded-xl border border-red-200 shadow-sm">
+                    <div className="flex items-center gap-3 bg-[#FEF2F2] border-b border-red-200 px-6 py-5 rounded-t-xl">
+                        <LogOut className="w-6 h-6 text-red-600" />
+                        <div>
+                            <h3 className="text-2xl font-semibold text-red-800">Sign Out</h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Sign out from your account
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-between items-center px-6 pt-4 border-t border-red-100">
+                        <p className="text-sm text-gray-500">
+                            You will be logged out and redirected to login.
+                        </p>
+
+                        <Button
+                            type="button"
+                            variant="solid"
+                            className="bg-red-600 text-white hover:bg-red-700 shadow-md"
+                            onClick={handleLogout}
+                            icon={<LogOut size={18} />}
                         >
-
-                        </CustomTextArea>
+                            Logout
+                        </Button>
                     </div>
                 </div>
+            </div>
 
-                {/* FIRS Integration Card */}
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        FIRS Integration
-                    </h3>
-
-                    <Input
-                        label="FIRS API Key"
-                        name="firsApiKey"
-                        type="password"
-                        placeholder="Enter your FIRS API key"
-                        value={settings.firsApiKey}
-                        onChange={handleChange}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                        This key will be used to validate and submit invoices to FIRS
-                    </p>
-                </div>
-
-                {/* Save Button */}
-                <div className="flex justify-end pt-4">
-                    <Button type="submit" variant="solid" icon={<Save className="w-4 h-4" />} loadingText="Saving">
-                        Save Settings
-                    </Button>
-                </div>
-            </form>
-        </>
+        </div>
     );
 };
 
-export default SettingsPage
+export default SettingsPage;
