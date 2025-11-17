@@ -22,6 +22,7 @@ import { OrgProtectedRoute } from "./OrgProtectedRoute";
 import ResetPasswordWrapper from "../pages/reset-password";
 import AuditLogsPage from "../pages/audit-logs";
 import EditInvoice from "../pages/invoices/EditInvoice";
+import CustomerInvoicesPage from "../pages/customers/CustomerInvoice";
 
 export const AppRouter = () => {
   useAuthInit();
@@ -92,6 +93,7 @@ export const AppRouter = () => {
           <Route path="invoices/:invoiceUID" element={<EditInvoice />} />
           <Route path="invoices/create-invoice" element={<CreateInvoice />} />
           <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/:UID/invoices" element={<CustomerInvoicesPage />} />
           <Route path="customers/create-customer" element={<CreateCustomer />} />
           <Route path="products" element={<ProductPage />} />
           <Route path="products/create-product" element={<CreateProduct />} />
