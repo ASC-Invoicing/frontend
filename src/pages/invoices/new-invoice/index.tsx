@@ -288,7 +288,7 @@ const CreateInvoice = () => {
                     />
                     <Button
                       icon={<Plus className="w-4 h-4" />}
-                      className="bg-white border border-gray-200 text-gray-700"
+                      className="bg-white !h-10.5 border border-gray-200 text-gray-700"
                       onClick={() =>
                         setLineItems((prev) => [
                           ...prev,

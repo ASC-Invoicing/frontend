@@ -21,6 +21,9 @@ interface DataTableProps<T> extends Omit<TableProps<T>, "title"> {
   onPageChange?: (page: number, pageSize: number) => void;
   emptyText?: string;
   bordered?: boolean;
+
+  /** 🔹 Added row click support */
+  onRowClick?: (record: T) => void;
 }
 
 export const DataTable = <T extends object>({
@@ -36,6 +39,7 @@ export const DataTable = <T extends object>({
   onPageChange,
   emptyText = "No data available",
   bordered = false,
+  onRowClick,
   ...props
 }: DataTableProps<T>) => {
   return (
@@ -66,14 +70,14 @@ export const DataTable = <T extends object>({
 
       {/* Body */}
       <div className="p-4">
-        {/* 🔹 Loading */}
+        {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-10 text-gray-500">
             <Spin size="large" />
           </div>
         )}
 
-        {/* 🔹 Error */}
+        {/* Error */}
         {!loading && error && (
           <div className="flex items-center justify-center py-16">
             <Result
@@ -95,7 +99,7 @@ export const DataTable = <T extends object>({
           </div>
         )}
 
-        {/* 🔹 Table */}
+        {/* Table */}
         {!loading && !error && (
           <>
             {dataSource && dataSource.length > 0 ? (
@@ -107,8 +111,14 @@ export const DataTable = <T extends object>({
                     columns={columns}
                     dataSource={dataSource}
                     pagination={false}
-                    scroll={{ x: "max-content" }} // 👈 enables horizontal scroll
-                    rowKey={(record) => (record as any).id || JSON.stringify(record)}
+                    scroll={{ x: "max-content" }}
+                    /** Row click support */
+                    onRow={(record) => ({
+                      onClick: () => onRowClick?.(record as T),
+                    })}
+                    rowKey={(record) =>
+                      (record as any).id || JSON.stringify(record)
+                    }
                     className={clsx(
                       "min-w-full",
                       "[&_thead_th]:!text-gray-500",
@@ -120,7 +130,7 @@ export const DataTable = <T extends object>({
                       "[&_thead_th]:!px-4",
                       "[&_tbody_td]:!py-4",
                       "[&_tbody_td]:!px-4",
-                      "[&_tbody_tr:hover]:!bg-gray-50",
+                      "[&_tbody_tr:hover]:!bg-gray-50 cursor-pointer",
                       "transition-colors duration-150"
                     )}
                   />

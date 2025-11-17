@@ -75,6 +75,20 @@ const AuditLogsPage: React.FC = () => {
         });
     }, [auditLogs, searchTerm, selectedAction, selectedEntity]);
 
+    const formatTimestamp = (value: string) => {
+        const date = new Date(value);
+
+        const formatted = date.toLocaleString("en-NG", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+        return formatted.replace(/am|pm/i, (m) => m.toUpperCase());
+    };
+
     const tableData = filteredLogs.map((log) => ({
         key: log.UID,
         Timestamp: log.CreatedAt,
@@ -84,11 +98,14 @@ const AuditLogsPage: React.FC = () => {
         Description: log.Description,
     }));
 
+
+
     const columns = [
         {
             title: "Timestamp",
             dataIndex: "Timestamp",
             key: "timestamp",
+            render: (value: string) => <span>{formatTimestamp(value)}</span>,
         },
         {
             title: "User",
@@ -119,6 +136,8 @@ const AuditLogsPage: React.FC = () => {
             key: "description",
         },
     ];
+
+
 
     return (
         <div className="flex flex-col font-sans min-h-screen">
@@ -190,7 +209,7 @@ const AuditLogsPage: React.FC = () => {
                         <p><b>Action:</b> {detailData.data.EventType}</p>
                         <p><b>Entity:</b> {detailData.data.Resource}</p>
                         <p><b>Description:</b> {detailData.data.Description}</p>
-                        <p><b>Timestamp:</b> {detailData.data.CreatedAt}</p>
+                        <p><b>Timestamp:</b> {formatTimestamp(detailData.data.CreatedAt)}</p>
                         <p><b>ID:</b> {detailData.data.UID}</p>
                     </div>
                 ) : null}

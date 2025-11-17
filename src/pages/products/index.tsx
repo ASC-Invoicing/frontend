@@ -324,7 +324,7 @@ const ProductPage: React.FC = () => {
                 onOk={confirmDeleteProduct}
                 onCancel={() => setProductToDelete(null)}
                 okText="Delete"
-                okType="danger"
+                okType="danger"                className=""
             >
                 Are you sure you want to delete the product "{productToDelete?.Name}"?
             </Modal>

@@ -1,121 +1,90 @@
 import React, { useState } from "react";
-import { Search, Plus, Pencil, Trash2, Mail, Phone, User } from "lucide-react";
+import { Search, Plus, Mail, Phone, User } from "lucide-react";
 import { Button, Input } from "../../components/ui";
 import { DataTable } from "../../components/ui/table";
 import { Header } from "../../components/header";
-import { Link } from "react-router-dom";
-
-interface Customer {
-    id: string;
-    name: string;
-    tin: string;
-    email: string;
-    phone: string;
-    address: string;
-}
-
-const mockCustomers: Customer[] = [
-    {
-        id: "CUST-001",
-        name: "Dangote Group",
-        tin: "12345678-0001",
-        email: "procurement@dangote.com",
-        phone: "+234 803 123 4567",
-        address: "1 Alfred Rewane Road, Ikoyi, Lagos",
-    },
-    {
-        id: "CUST-002",
-        name: "MTN Nigeria",
-        tin: "87654321-0001",
-        email: "accounts@mtn.ng",
-        phone: "+234 805 987 6543",
-        address: "Churchgate Towers, Victoria Island, Lagos",
-    },
-    {
-        id: "CUST-003",
-        name: "Access Bank PLC",
-        tin: "45678912-0001",
-        email: "vendors@accessbankplc.com",
-        phone: "+234 802 456 7890",
-        address: "999C Danmole Street, Victoria Island, Lagos",
-    },
-];
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useListCustomersQuery } from "../../features/customers/customer-slice";
 
 const CustomersPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { orgSlug } = useParams();
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredCustomers = mockCustomers.filter((customer) => {
-        const term = searchTerm.toLowerCase();
+    const { data, isLoading } = useListCustomersQuery({
+        page: 1,
+        limit: 50,
+    });
+
+    const customers = data?.data || [];
+
+    const filtered = customers.filter((c) => {
+        const s = searchTerm.toLowerCase();
         return (
-            customer.name.toLowerCase().includes(term) ||
-            customer.tin.includes(term) ||
-            customer.email.toLowerCase().includes(term)
+            c.CompanyName.toLowerCase().includes(s) ||
+            c.TIN.includes(s) ||
+            c.BusinessEmail?.toLowerCase().includes(s)
         );
     });
 
     const columns = [
         {
-            title: "Customer Name",
-            dataIndex: "name",
+            title: "Customer",
             key: "name",
-            render: (text: string) => (
-                <span className="font-semibold text-gray-900">{text}</span>
-            ),
-        },
-        {
-            title: "TIN",
-            dataIndex: "tin",
-            key: "tin",
-            render: (text: string) => (
-                <span className="text-gray-700 tracking-wide">{text}</span>
+            render: (_: any, r: any) => (
+                <div>
+                    <div className="font-semibold text-gray-900">{r.CompanyName}</div>
+                    <div className="text-xs text-gray-500">TIN: {r.TIN}</div>
+                </div>
             ),
         },
         {
             title: "Contact",
             key: "contact",
-            render: (_: any, record: Customer) => (
+            render: (_: any, r: any) => (
                 <div className="space-y-1">
                     <div className="flex items-center text-sm text-gray-700">
                         <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                        <a
-                            href={`mailto:${record.email}`}
-                            className="hover:text-[#2563EB] transition-colors"
-                        >
-                            {record.email}
-                        </a>
+                        {r.BusinessEmail || "—"}
                     </div>
                     <div className="flex items-center text-sm text-gray-700">
                         <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                        <span>{record.phone}</span>
+                        {r.PhoneNumber || "—"}
                     </div>
                 </div>
             ),
         },
         {
-            title: "Address",
-            dataIndex: "address",
-            key: "address",
-            render: (text: string) => (
-                <span className="text-gray-500 text-sm">{text}</span>
+            title: "Verified",
+            key: "verified",
+            render: (_: any, r: any) => (
+                <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${r.Verified
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                        }`}
+                >
+                    {r.Verified ? "Verified" : "Not Verified"}
+                </span>
             ),
         },
+
         {
             title: "Actions",
             key: "actions",
-            render: () => (
-                <div className="flex space-x-2">
-                    <button className="text-gray-500 cursor-pointer hover:text-[#2563EB] p-1 rounded-md transition-colors">
-                        <Pencil className="w-4 h-4" />
-                    </button>
-                    <button className="text-gray-500 cursor-pointer hover:text-red-500 p-1 rounded-md transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
+            render: (_: any, r: any) => (
+                <button
+                    onClick={() => navigate(`/${orgSlug}/customers/${r.UID}/invoices`)}
+                    className="border border-[#00A859] text-gray-700 px-3 py-1.5 cursor-pointer text-xs rounded-md hover:bg-gray-50"
+                >
+                    View Invoices
+                </button>
             ),
         },
     ];
 
     return (
+
         <div className="flex flex-col font-sans min-h-screen">
             {/* Header */}
 
@@ -123,13 +92,13 @@ const CustomersPage: React.FC = () => {
                 icon={<User className="w-6 h-6 text-[#00A859]" />}
                 title="Customers"
                 description="Manage your customer database"
-                actions={
-                    <Link to="create-customer">
-                        <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
-                            Add Customer
-                        </Button>
-                    </Link>
-                }
+            // actions={
+            //     <Link to="create-customer">
+            //         <Button icon={<Plus className="w-4 h-4" />} className="shadow-md">
+            //             Add Customer
+            //         </Button>
+            //     </Link>
+            // }
             />
 
             {/* Search */}
@@ -148,23 +117,22 @@ const CustomersPage: React.FC = () => {
 
                 </div>
             </div>
-
-            {/* Table */}
             <main className="py-4 flex-grow">
                 <DataTable
                     title="Customer List"
                     columns={columns}
-                    dataSource={filteredCustomers}
-                    loading={false}
-                    total={filteredCustomers.length}
+                    dataSource={filtered}
+                    loading={isLoading}
+                    total={filtered.length}
                     currentPage={1}
-                    pageSize={10}
+                    pageSize={50}
                     bordered
-                    emptyText="No customers found matching your criteria."
+                    emptyText="No customers found."
                 />
             </main>
         </div>
     );
 };
+
 
 export default CustomersPage;
